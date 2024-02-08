@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import awkward as ak
 from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import pandas as pd
 from array import array
@@ -53,6 +54,7 @@ bkg_pt_weights = flattened_pt_weighted(ditau['ditau_pt'], pt_bins, bkg_evt_weigh
 
 graviton_gamma = ak.concatenate([graviton, gamma])
 
+#the order matters. needs to be kept like this. 
 trainig_vars = ["f_core_lead", 
                 "f_core_subl", 
                 "f_subjet_subl", 
@@ -87,7 +89,7 @@ labels = np.concatenate([signal_labels, qcd_labels])
 
 graviton_gamma_pd = pd.DataFrame(columns=trainig_vars)
 jz_pd = pd.DataFrame(columns=trainig_vars)
-for i in tqdm(range(len(trainig_vars))):
+for i in range(len(trainig_vars)):
     #print(graviton_gamma_train[trainig_vars[i]])
     graviton_gamma_pd[trainig_vars[i]] = graviton_gamma_train[trainig_vars[i]].tolist()
     jz_pd[trainig_vars[i]] = jz_train[trainig_vars[i]].tolist()
@@ -106,8 +108,7 @@ combined_data = pd.concat([combined_column, weight_pd, labels_pd], axis=1)
 # combined_data[abs_log_var] = np.log(np.abs(combined_data[abs_log_var]))
 # combined_data = combined_data[~combined_data[abs_log_var].isin([np.inf, -np.inf]).any(axis=1)]
 
-#shuffle the data
-combined_data = combined_data.sample(frac=1, random_state=42).reset_index(drop=True)
+# combined_data = combined_data.sample(frac=1, random_state=42).reset_index(drop=True)
 
 pd_data = combined_data[trainig_vars]
 pd_weights = combined_data["weight"]
@@ -120,19 +121,17 @@ pd_data.rename(columns=feature_mapping, inplace=True)
 
 print(pd_data)
 
-# split the data into training and testing sets
-training_size = 0.8
+# Splitting the data into training and temporary sets
+# temp_data, validation_data, temp_labels, validation_labels, temp_weights, validation_weights = train_test_split(pd_data, pd_labels, pd_weights, test_size=0.1, random_state=42)
+# np.save("validation_data.npy", validation_data)
 
-training_data = pd_data[:int(len(pd_data)*training_size)]
-training_labels = pd_labels[:int(len(pd_labels)*training_size)]
-training_weights = pd_weights[:int(len(pd_weights)*training_size)]
+# Splitting the temporary data into training and testing sets
+training_data, testing_data, training_labels, testing_labels, training_weights, testing_weights = train_test_split(pd_data, pd_labels, pd_weights, test_size=0.2, random_state=42)
+#training_data, testing_data, training_labels, testing_labels, training_weights, testing_weights = train_test_split(temp_data, temp_labels, temp_weights, test_size=0.3, random_state=42)
+
 print("training data: ", training_data.shape)
 print("training labels: ", training_labels.shape)
 print("training weights: ", training_weights.shape)
-
-testing_data = pd_data[int(len(pd_data)*training_size):]
-testing_labels = pd_labels[int(len(pd_labels)*training_size):]
-testing_weights = pd_weights[int(len(pd_weights)*training_size):]
 print("testing data: ", testing_data.shape)
 print("testing labels: ", testing_labels.shape)
 print("testing weights: ", testing_weights.shape)
@@ -196,4 +195,4 @@ canvas.Clear()
 
 canvas.Print("bdt_results/xgb_bdt.pdf]")
 
-bdt.save_model('bdt_results/xgb_model.json')
+bdt.save_model('bdt_results/xgb_model.model')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2002-2020 CERN for the benefit of the ATLAS collaboration
-# convertXGBoostToRootTree.py my_model.model my_output.root --objective binary:logistic
+# python convertXGBoostToRootTree.py my_model.model my_output.root --objective binary:logistic --tree-name BDT
 
 __doc__ = "Convert XGBoost model to TTree to be used with MVAUtils."
 __author__ = "Yuan-Tang Chou & Ali Garabaglu"
@@ -102,7 +102,7 @@ def dump2ROOT(model, output_filename, output_treename='xgboost'):
     with open('dump_model.json', 'r') as dump_json:
         model_dump = dump_json.read()
     trees = json.loads(model_dump)
-    print(trees[0])
+    # print(trees[0])
     fout = ROOT.TFile.Open(output_filename, 'recreate')
 
     varList = ROOT.TNamed("varList", "f_core_lead,f_core_subl,f_subjet_subl,f_subjets,log(f_isotracks),R_max_lead,R_max_subl,R_isotrack,R_tracks_subl,log(m_core_lead),log(m_core_subl),log(m_tracks_lead),log(m_tracks_subl),log(abs(d0_leadtrack_lead)),log(abs(d0_leadtrack_subl)),n_track,n_tracks_lead")
@@ -159,11 +159,11 @@ def test(model_file, tree_file, objective, tree_name='xgboost', ntests=10000, te
     bst.load_model(model_file)
     f = ROOT.TFile.Open(tree_file)
     tree = f.Get(tree_name)
-    try:
-        _ = ROOT.MVAUtils.BDT
-    except Exception:
-        print("cannot import MVAUtils")
-        return None
+    # try:
+    #     _ = ROOT.MVAUtils.BDT
+    # except Exception:
+    #     print("cannot import MVAUtils")
+    #     return Nones
 
     mva_utils = ROOT.MVAUtils.BDT(tree)
 
@@ -290,9 +290,9 @@ def check_file(fn):
     f = ROOT.TFile.Open(fn)
     keys = f.GetListOfKeys()
     keys = list(keys)
-    if len(keys) != 1:
-        logging.info("file %s is empty", fn)
-        return False
+    # if len(keys) != 1:
+    #     logging.info("file %s is empty", fn)
+    #     return False
     tree = f.Get(keys[0].GetName())
     if type(tree) != ROOT.TTree:
         logging.info("cannot find TTree in file %s", fn)
