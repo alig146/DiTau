@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2002-2020 CERN for the benefit of the ATLAS collaboration
-# python convertXGBoostToRootTree.py my_model.model my_output.root --objective binary:logistic --tree-name BDT
+# python convertXGBoostToRootTree.py bdt_results/xgb_model.model bdt_results/xgb_model.root --objective binary:logistic --tree-name BDT
 
 __doc__ = "Convert XGBoost model to TTree to be used with MVAUtils."
 __author__ = "Yuan-Tang Chou & Ali Garabaglu"
@@ -31,13 +31,26 @@ class XBGoostTextNode(dict):
     #         return self['split']
     #     else:
     #         return -1
-        
+    
+    ## for json
+    # def get_split_feature(self):
+    #     if 'split' in self:
+    #         split_feature = self['split']
+    #         print("WWW: ", split_feature[1:])
+    #         if isinstance(split_feature, str) and split_feature.isdigit():
+    #             return int(split_feature[1:])
+    #     else: 
+    #         return -1
+
+    ## for model
     def get_split_feature(self):
         if 'split' in self:
             split_feature = self['split']
-            if isinstance(split_feature, str) and split_feature.isdigit():
-                return int(split_feature)
-        return -1
+            print("WWW: ", split_feature[1:])
+            if isinstance(split_feature, str) and split_feature[0] == 'f':
+                return int(split_feature[1:])
+        else: 
+            return -1
 
     def get_value(self):
         if 'split_condition' in self:
@@ -102,6 +115,7 @@ def dump2ROOT(model, output_filename, output_treename='xgboost'):
     with open('dump_model.json', 'r') as dump_json:
         model_dump = dump_json.read()
     trees = json.loads(model_dump)
+    
     # print(trees[0])
     fout = ROOT.TFile.Open(output_filename, 'recreate')
 
