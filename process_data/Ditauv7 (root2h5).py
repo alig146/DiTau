@@ -6,6 +6,7 @@ import h5py
 
 branches = ['EventInfoAux.eventNumber',
             'DiTauJetsAuxDyn.BDTScore',
+            'DiTauJetsAuxDyn.BDTScoreNew',
             'DiTauJetsAuxDyn.ditau_pt',
             'DiTauJetsAuxDyn.n_subjets',
             'EventInfoAuxDyn.mcEventWeights',
