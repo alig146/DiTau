@@ -65,6 +65,7 @@ for index in range(len(file_paths)):
     event_weight = []
     event_weight_sum = []
     bdt_score = []
+    bdt_score_new = []
     event_id = []
     
 
@@ -77,6 +78,7 @@ for index in range(len(file_paths)):
         flatten_event_id = np.repeat(events['EventInfoAux.eventNumber'], ak.num(events['DiTauJetsAuxDyn.ditau_pt']))
         event_id.append(flatten_event_id)
         bdt_score.append(ak.flatten(events['DiTauJetsAuxDyn.BDTScore']))
+        bdt_score_new.append(ak.flatten(events['DiTauJetsAuxDyn.BDTScoreNew']))
         ditau_pt.append(ak.flatten(events['DiTauJetsAuxDyn.ditau_pt']))
         n_subjets.append(ak.flatten(events['DiTauJetsAuxDyn.n_subjets']))
         IsTruthHadronic.append(ak.flatten(events['DiTauJetsAuxDyn.IsTruthHadronic']))
@@ -107,6 +109,7 @@ for index in range(len(file_paths)):
     # Create datasets in the H5 file
     h5_file.create_dataset('event_id', data=ak.to_numpy(ak.concatenate(event_id)), compression='gzip')
     h5_file.create_dataset('bdt_score', data=ak.to_numpy(ak.concatenate(bdt_score)), compression='gzip')
+    h5_file.create_dataset('bdt_score_new', data=ak.to_numpy(ak.concatenate(bdt_score_new)), compression='gzip')
     h5_file.create_dataset('ditau_pt', data=ak.to_numpy(ak.concatenate(ditau_pt)), compression='gzip')
     h5_file.create_dataset('n_subjets', data=ak.to_numpy(ak.concatenate(n_subjets)), compression='gzip') ####was not compressed 
     h5_file.create_dataset('IsTruthHadronic', data=ak.to_numpy(ak.concatenate(IsTruthHadronic)), compression='gzip')
