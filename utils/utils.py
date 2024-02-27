@@ -9,6 +9,7 @@ from tqdm import tqdm
 import pandas as pd
 from array import array
 import ctypes
+import h5py
 
 def divide_hists(h_num, h_den, name=None, eff=False):
     h = h_num.Clone()
@@ -295,34 +296,72 @@ def flattened_pt_weighted(data, bins, weight):
 
     return weights
 
-def plot_eff(data, cuts, name, num_bins, x_min, x_max, event_weights=None, pt_weights=None, eta=False):
-    if event_weights is None and pt_weights is None:
-        pt_1p3p_dnom = plt_to_root_hist_w(data[cuts[0]], num_bins, x_min, x_max, None, eta)
-        pt_1p3p_num =  plt_to_root_hist_w(data[cuts[1]], num_bins, x_min, x_max, None, eta)
-        pt_1p1p_dnom = plt_to_root_hist_w(data[cuts[2]], num_bins, x_min, x_max, None, eta)
-        pt_1p1p_num =  plt_to_root_hist_w(data[cuts[3]], num_bins, x_min, x_max, None, eta)
-        pt_3p3p_dnom = plt_to_root_hist_w(data[cuts[4]], num_bins, x_min, x_max, None, eta)
-        pt_3p3p_num =  plt_to_root_hist_w(data[cuts[5]], num_bins, x_min, x_max, None, eta)
-        pt_inc_dnom =  plt_to_root_hist_w(data[cuts[6]], num_bins, x_min, x_max, None, eta)
-        pt_inc_num =   plt_to_root_hist_w(data[cuts[7]], num_bins, x_min, x_max, None, eta)
-    elif event_weights is not None and pt_weights is None:
-        pt_1p3p_dnom = plt_to_root_hist_w(data[cuts[0]], num_bins, x_min, x_max, event_weights[cuts[0]], eta)
-        pt_1p3p_num =  plt_to_root_hist_w(data[cuts[1]], num_bins, x_min, x_max, event_weights[cuts[1]], eta)
-        pt_1p1p_dnom = plt_to_root_hist_w(data[cuts[2]], num_bins, x_min, x_max, event_weights[cuts[2]], eta)
-        pt_1p1p_num =  plt_to_root_hist_w(data[cuts[3]], num_bins, x_min, x_max, event_weights[cuts[3]], eta)
-        pt_3p3p_dnom = plt_to_root_hist_w(data[cuts[4]], num_bins, x_min, x_max, event_weights[cuts[4]], eta)
-        pt_3p3p_num =  plt_to_root_hist_w(data[cuts[5]], num_bins, x_min, x_max, event_weights[cuts[5]], eta)
-        pt_inc_dnom =  plt_to_root_hist_w(data[cuts[6]], num_bins, x_min, x_max, event_weights[cuts[6]], eta)
-        pt_inc_num =   plt_to_root_hist_w(data[cuts[7]], num_bins, x_min, x_max, event_weights[cuts[7]], eta)
-    else:
-        pt_1p3p_dnom = plt_to_root_hist_w(data[cuts[0]], num_bins, x_min, x_max, event_weights[cuts[0]]*pt_weights[cuts[0]], eta)
-        pt_1p3p_num =  plt_to_root_hist_w(data[cuts[1]], num_bins, x_min, x_max, event_weights[cuts[1]]*pt_weights[cuts[1]], eta)
-        pt_1p1p_dnom = plt_to_root_hist_w(data[cuts[2]], num_bins, x_min, x_max, event_weights[cuts[2]]*pt_weights[cuts[2]], eta)
-        pt_1p1p_num =  plt_to_root_hist_w(data[cuts[3]], num_bins, x_min, x_max, event_weights[cuts[3]]*pt_weights[cuts[3]], eta)
-        pt_3p3p_dnom = plt_to_root_hist_w(data[cuts[4]], num_bins, x_min, x_max, event_weights[cuts[4]]*pt_weights[cuts[4]], eta)
-        pt_3p3p_num =  plt_to_root_hist_w(data[cuts[5]], num_bins, x_min, x_max, event_weights[cuts[5]]*pt_weights[cuts[5]], eta)
-        pt_inc_dnom =  plt_to_root_hist_w(data[cuts[6]], num_bins, x_min, x_max, event_weights[cuts[6]]*pt_weights[cuts[6]], eta)
-        pt_inc_num =   plt_to_root_hist_w(data[cuts[7]], num_bins, x_min, x_max, event_weights[cuts[7]]*pt_weights[cuts[7]], eta)
+# def plot_eff(data, cuts, name, num_bins, x_min, x_max, event_weights=None, pt_weights=None, eta=False):
+#     if event_weights is None and pt_weights is None:
+#         pt_1p3p_dnom = plt_to_root_hist_w(data[cuts[0]], num_bins, x_min, x_max, None, eta)
+#         pt_1p3p_num =  plt_to_root_hist_w(data[cuts[1]], num_bins, x_min, x_max, None, eta)
+#         pt_1p1p_dnom = plt_to_root_hist_w(data[cuts[2]], num_bins, x_min, x_max, None, eta)
+#         pt_1p1p_num =  plt_to_root_hist_w(data[cuts[3]], num_bins, x_min, x_max, None, eta)
+#         pt_3p3p_dnom = plt_to_root_hist_w(data[cuts[4]], num_bins, x_min, x_max, None, eta)
+#         pt_3p3p_num =  plt_to_root_hist_w(data[cuts[5]], num_bins, x_min, x_max, None, eta)
+#         pt_inc_dnom =  plt_to_root_hist_w(data[cuts[6]], num_bins, x_min, x_max, None, eta)
+#         pt_inc_num =   plt_to_root_hist_w(data[cuts[7]], num_bins, x_min, x_max, None, eta)
+#     elif event_weights is not None and pt_weights is None:
+#         pt_1p3p_dnom = plt_to_root_hist_w(data[cuts[0]], num_bins, x_min, x_max, event_weights[cuts[0]], eta)
+#         pt_1p3p_num =  plt_to_root_hist_w(data[cuts[1]], num_bins, x_min, x_max, event_weights[cuts[1]], eta)
+#         pt_1p1p_dnom = plt_to_root_hist_w(data[cuts[2]], num_bins, x_min, x_max, event_weights[cuts[2]], eta)
+#         pt_1p1p_num =  plt_to_root_hist_w(data[cuts[3]], num_bins, x_min, x_max, event_weights[cuts[3]], eta)
+#         pt_3p3p_dnom = plt_to_root_hist_w(data[cuts[4]], num_bins, x_min, x_max, event_weights[cuts[4]], eta)
+#         pt_3p3p_num =  plt_to_root_hist_w(data[cuts[5]], num_bins, x_min, x_max, event_weights[cuts[5]], eta)
+#         pt_inc_dnom =  plt_to_root_hist_w(data[cuts[6]], num_bins, x_min, x_max, event_weights[cuts[6]], eta)
+#         pt_inc_num =   plt_to_root_hist_w(data[cuts[7]], num_bins, x_min, x_max, event_weights[cuts[7]], eta)
+#     else:
+#         pt_1p3p_dnom = plt_to_root_hist_w(data[cuts[0]], num_bins, x_min, x_max, event_weights[cuts[0]]*pt_weights[cuts[0]], eta)
+#         pt_1p3p_num =  plt_to_root_hist_w(data[cuts[1]], num_bins, x_min, x_max, event_weights[cuts[1]]*pt_weights[cuts[1]], eta)
+#         pt_1p1p_dnom = plt_to_root_hist_w(data[cuts[2]], num_bins, x_min, x_max, event_weights[cuts[2]]*pt_weights[cuts[2]], eta)
+#         pt_1p1p_num =  plt_to_root_hist_w(data[cuts[3]], num_bins, x_min, x_max, event_weights[cuts[3]]*pt_weights[cuts[3]], eta)
+#         pt_3p3p_dnom = plt_to_root_hist_w(data[cuts[4]], num_bins, x_min, x_max, event_weights[cuts[4]]*pt_weights[cuts[4]], eta)
+#         pt_3p3p_num =  plt_to_root_hist_w(data[cuts[5]], num_bins, x_min, x_max, event_weights[cuts[5]]*pt_weights[cuts[5]], eta)
+#         pt_inc_dnom =  plt_to_root_hist_w(data[cuts[6]], num_bins, x_min, x_max, event_weights[cuts[6]]*pt_weights[cuts[6]], eta)
+#         pt_inc_num =   plt_to_root_hist_w(data[cuts[7]], num_bins, x_min, x_max, event_weights[cuts[7]]*pt_weights[cuts[7]], eta)
+
+#     pt_1p3p_eff = make_eff_hist(pt_1p3p_num, pt_1p3p_dnom, "1p3p_eff")
+#     pt_1p1p_eff = make_eff_hist(pt_1p1p_num, pt_1p1p_dnom, "1p1p_eff")
+#     pt_3p3p_eff = make_eff_hist(pt_3p3p_num, pt_3p3p_dnom, "3p3p_eff")
+#     pt_inc_eff = make_eff_hist(pt_inc_num, pt_inc_dnom, "inc_eff")
+
+#     pt_1p3p_eff.GetYaxis().SetRangeUser(0, 1)
+#     pt_1p1p_eff.GetYaxis().SetRangeUser(0, 1)
+#     pt_3p3p_eff.GetYaxis().SetRangeUser(0, 1)
+#     pt_inc_eff.GetYaxis().SetRangeUser(0, 1)
+
+#     pt_1p3p_eff.GetXaxis().SetRangeUser(x_min, x_max)
+#     pt_1p1p_eff.GetXaxis().SetRangeUser(x_min, x_max)
+#     pt_3p3p_eff.GetXaxis().SetRangeUser(x_min, x_max)
+#     pt_inc_eff.GetXaxis().SetRangeUser(x_min, x_max)
+
+#     pt_1p3p_eff.GetXaxis().SetTitle(name)
+#     pt_1p1p_eff.GetXaxis().SetTitle(name)
+#     pt_3p3p_eff.GetXaxis().SetTitle(name)
+#     pt_inc_eff.GetXaxis().SetTitle(name)
+    
+#     pt_1p3p_eff.SetLineColor(ROOT.kBlack)
+#     pt_1p1p_eff.SetLineColor(ROOT.kOrange)
+#     pt_3p3p_eff.SetLineColor(ROOT.kRed)
+#     pt_inc_eff.SetLineColor(ROOT.kGreen)
+
+#     return pt_1p3p_eff, pt_1p1p_eff, pt_3p3p_eff, pt_inc_eff
+
+def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False):
+    
+    pt_1p3p_dnom = plt_to_root_hist_w(data[0], num_bins, x_min, x_max, weights[0], eta)
+    pt_1p3p_num =  plt_to_root_hist_w(data[1], num_bins, x_min, x_max, weights[1], eta)
+    pt_1p1p_dnom = plt_to_root_hist_w(data[2], num_bins, x_min, x_max, weights[2], eta)
+    pt_1p1p_num =  plt_to_root_hist_w(data[3], num_bins, x_min, x_max, weights[3], eta)
+    pt_3p3p_dnom = plt_to_root_hist_w(data[4], num_bins, x_min, x_max, weights[4], eta)
+    pt_3p3p_num =  plt_to_root_hist_w(data[5], num_bins, x_min, x_max, weights[5], eta)
+    pt_inc_dnom =  plt_to_root_hist_w(data[6], num_bins, x_min, x_max, weights[6], eta)
+    pt_inc_num =   plt_to_root_hist_w(data[7], num_bins, x_min, x_max, weights[7], eta)
 
     pt_1p3p_eff = make_eff_hist(pt_1p3p_num, pt_1p3p_dnom, "1p3p_eff")
     pt_1p1p_eff = make_eff_hist(pt_1p1p_num, pt_1p1p_dnom, "1p1p_eff")
@@ -362,3 +401,46 @@ def uproot_open(file_path, branches):
     # f1 = f_1['CollectionTree'].arrays(branches, library='ak', entry_stop=40000000)
     f1 = f_1.arrays(branches, library='ak')
     return f1
+
+def h52panda(filelist, xs, cut, bdt=False, pp13=False, pp11=False, pp33=False, ppinc=False):
+    combined = pd.DataFrame()
+    chunk_size = 10000000  # Adjust this size to suit your system's memory
+    pt_bins = np.linspace(200000, 1000000, 41)
+
+    dataset_keys = ["event_id", "ditau_pt", "IsTruthHadronic",
+                "f_core_lead", "f_core_subl", "f_subjet_subl", "f_subjets", "f_isotracks",
+                "R_max_lead", "R_max_subl", "R_isotrack", "R_tracks_subl",
+                "m_core_lead", "m_core_subl", "m_tracks_lead", "m_tracks_subl",
+                "d0_leadtrack_lead", "d0_leadtrack_subl",
+                "n_track", "n_tracks_lead", "n_tracks_subl", "n_subjets",
+                "event_weight", "bdt_score", "bdt_score_new", "average_mu", "eta"]
+
+    for index in range(len(filelist)):
+        file_path = filelist[index]
+    
+        # Process the file in chunks
+        with h5py.File(file_path, 'r') as h5_file:
+            # Determine the total length of the datasets
+            total_length = h5_file[dataset_keys[0]].shape[0]
+            print(f'{filelist[index]}: {total_length}')
+
+            # Read and process each chunk
+            for chunk_start in range(0, total_length, chunk_size):
+                chunk_end = chunk_start + chunk_size
+
+                # Use slicing to read a chunk from each dataset in the HDF5 file
+                data = {key: h5_file[key][chunk_start:chunk_end] for key in dataset_keys}
+
+                # Convert the dictionary to a pandas DataFrame
+                df_chunk = pd.DataFrame(data)
+
+                # Apply Cut
+                filtered_chunk = df_chunk[cut(df_chunk, bdt, pp13, pp11, pp33, ppinc)]
+                filtered_chunk = filtered_chunk.copy()
+                filtered_chunk.loc[:, 'event_weight'] = filtered_chunk['event_weight'] * getXS(xs[index])
+
+                combined = pd.concat([combined, filtered_chunk], ignore_index=True)
+    
+    combined['pT_weight'] = flattened_pt_weighted(combined['ditau_pt'], pt_bins, combined['event_weight'])
+
+    return combined
