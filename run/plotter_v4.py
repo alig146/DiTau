@@ -5,7 +5,7 @@ import numpy as np
 import awkward as ak
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.cm as cm
-from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.metrics import roc_curve, roc_auc_score, auc
 sys.path.append("..")
 from utils.utils import *
 
@@ -20,7 +20,9 @@ def signal_cut(df_chunk, bdt=False, pp13=False, pp11=False, pp33=False, ppinc=Fa
     cut6 = ((df_chunk['n_tracks_lead'] == 3) & (df_chunk['n_tracks_subl'] == 3))
     cut7 = (((df_chunk['n_tracks_lead'] == 1) | (df_chunk['n_tracks_lead'] == 3)) & ((df_chunk['n_tracks_subl'] == 1) | (df_chunk['n_tracks_subl'] == 3)))
 
-    cut8 = (df_chunk['bdt_score'] >= 0.72) 
+    #cut8 = (df_chunk['bdt_score'] >= 0.72) 
+    cut8 = (df_chunk['bdt_score_new'] >= 0.72) 
+
 
     if bdt and pp13:
         return (cut1 & cut2 & cut3 & cut4 & cut8)
@@ -50,7 +52,9 @@ def bkg_cut(df_chunk, bdt=False, pp13=False, pp11=False, pp33=False, ppinc=False
     cut6 = ((df_chunk['n_tracks_lead'] == 3) & (df_chunk['n_tracks_subl'] == 3))
     cut7 = (((df_chunk['n_tracks_lead'] == 1) | (df_chunk['n_tracks_lead'] == 3)) & ((df_chunk['n_tracks_subl'] == 1) | (df_chunk['n_tracks_subl'] == 3)))
 
-    cut8 = (df_chunk['bdt_score'] > 0.55)
+    #cut8 = (df_chunk['bdt_score'] > 0.55)
+    cut8 = (df_chunk['bdt_score_new'] > 0.55)
+
 
     if bdt and pp13:
         return (cut1 & cut2 & cut4 & cut8)
@@ -79,66 +83,89 @@ def plotter():
 
 
     bkg_xs = [364701, 364702, 364703, 364704, 364705, 364706, 364707, 364708, 364709, 364710, 364711, 364712]
-    graviton_xs = [425108, 425100, 425101, 425102, 425103, 425104, 425105, 425106, 425107]
-    gamma_xs = [425200]
+    graviton_xs = [425108, 425100, 425101, 425102, 425103, 425104, 425105, 425106, 425107, 425200]
+    # gamma_xs = [425200]
 
     # File Location. order maatch XS. 
     bkg_filelist = []
     for index in range(12):
         bkg_filelist.append(path+f"jz_w_newbdt/dijet_flattened_jz{index+1}.h5")
 
-    # graviton_filelist = ["graviton_flattened_M1000.h5",
-    #                 "graviton_flattened_M1500.h5",
-    #                 "graviton_flattened_M1750.h5",
-    #                 "graviton_flattened_M2000.h5",
-    #                 "graviton_flattened_M2250.h5",
-    #                 "graviton_flattened_M2500.h5",
-    #                 "graviton_flattened_M3000.h5",
-    #                 "graviton_flattened_M4000.h5"
-    #                 "graviton_flattened_M5000.h5"]
+    graviton_filelist = [path+"signal_w_newbdt/graviton_flattened_M1000.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M1500.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M1750.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M2000.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M2250.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M2500.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M3000.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M4000.h5",
+                    path+"signal_w_newbdt/graviton_flattened_M5000.h5",
+                    path+"signal_w_newbdt/gamma_flattened_0.h5"]
 
-    # gamma_filelist = ["gamma_flattened_0.h5"]   
-
-
-    # # Define pT bins for pt weight
-    # pt_bins = np.linspace(200000, 1000000, 41)
+    # gamma_filelist = [path+"signal_w_newbdt/gamma_flattened_0.h5"]   
 
 
-    # combined_gamma = h52panda(gamma_filelist, gamma_xs, signal_cut)
-    # combined_graviton = h52panda(graviton_filelist, graviton_xs, signal_cut)
-    combined_bkg_1p3p = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp13=True)
-    combined_bkg_1p3p_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp13=True, bdt=True)
-    combined_bkg_1p1p = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp11=True)
-    combined_bkg_1p1p_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp11=True, bdt=True)
-    combined_bkg_3p3p = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp33=True)
-    combined_bkg_3p3p_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp33=True, bdt=True)
-    combined_bkg_inc = h52panda(bkg_filelist, bkg_xs, bkg_cut, ppinc=True)
-    combined_bkg_inc_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, ppinc=True, bdt=True)
-    combined_bkg_1p3p['label'] = 0
-    combined_bkg_1p3p_bdt['label'] = 0
-    combined_bkg_1p1p['label'] = 0
-    combined_bkg_1p1p_bdt['label'] = 0
-    combined_bkg_3p3p['label'] = 0
-    combined_bkg_3p3p_bdt['label'] = 0
-    combined_bkg_inc['label'] = 0
-    combined_bkg_inc_bdt['label'] = 0
-    combined_bkg_1p3p['weight'] = combined_bkg_1p3p['event_weight'] * combined_bkg_1p3p['pT_weight']
-    combined_bkg_1p3p_bdt['weight'] = combined_bkg_1p3p_bdt['event_weight'] * combined_bkg_1p3p_bdt['pT_weight']
-    combined_bkg_1p1p['weight'] = combined_bkg_1p1p['event_weight'] * combined_bkg_1p1p['pT_weight']
-    combined_bkg_1p1p_bdt['weight'] = combined_bkg_1p1p_bdt['event_weight'] * combined_bkg_1p1p_bdt['pT_weight']
-    combined_bkg_3p3p['weight'] = combined_bkg_3p3p['event_weight'] * combined_bkg_3p3p['pT_weight']
-    combined_bkg_3p3p_bdt['weight'] = combined_bkg_3p3p_bdt['event_weight'] * combined_bkg_3p3p_bdt['pT_weight']
-    combined_bkg_inc['weight'] = combined_bkg_inc['event_weight'] * combined_bkg_inc['pT_weight']
-    combined_bkg_inc_bdt['weight'] = combined_bkg_inc_bdt['event_weight'] * combined_bkg_inc_bdt['pT_weight']
+    combined_signal_1p3p = h52panda(graviton_filelist, graviton_xs, signal_cut, pp13=True)
+    combined_signal_1p3p_bdt = h52panda(graviton_filelist, graviton_xs, signal_cut, pp13=True, bdt=True)
+    combined_signal_1p1p = h52panda(graviton_filelist, graviton_xs, signal_cut, pp11=True)
+    combined_signal_1p1p_bdt = h52panda(graviton_filelist, graviton_xs, signal_cut, pp11=True, bdt=True)
+    combined_signal_3p3p = h52panda(graviton_filelist, graviton_xs, signal_cut, pp33=True)
+    combined_signal_3p3p_bdt = h52panda(graviton_filelist, graviton_xs, signal_cut, pp33=True, bdt=True)
+    combined_signal_inc = h52panda(graviton_filelist, graviton_xs, signal_cut, ppinc=True)
+    combined_signal_inc_bdt = h52panda(graviton_filelist, graviton_xs, signal_cut, ppinc=True, bdt=True)
+    combined_signal_1p3p['weight'] = combined_signal_1p3p['event_weight'] * combined_signal_1p3p['pT_weight']
+    combined_signal_1p3p_bdt['weight'] = combined_signal_1p3p_bdt['event_weight'] * combined_signal_1p3p_bdt['pT_weight']
+    combined_signal_1p1p['weight'] = combined_signal_1p1p['event_weight'] * combined_signal_1p1p['pT_weight']
+    combined_signal_1p1p_bdt['weight'] = combined_signal_1p1p_bdt['event_weight'] * combined_signal_1p1p_bdt['pT_weight']
+    combined_signal_3p3p['weight'] = combined_signal_3p3p['event_weight'] * combined_signal_3p3p['pT_weight']
+    combined_signal_3p3p_bdt['weight'] = combined_signal_3p3p_bdt['event_weight'] * combined_signal_3p3p_bdt['pT_weight']
+    combined_signal_inc['weight'] = combined_signal_inc['event_weight'] * combined_signal_inc['pT_weight']
+    combined_signal_inc_bdt['weight'] = combined_signal_inc_bdt['event_weight'] * combined_signal_inc_bdt['pT_weight']
+
+
+    # combined_bkg_1p3p = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp13=True)
+    # combined_bkg_1p3p_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp13=True, bdt=True)
+    # combined_bkg_1p1p = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp11=True)
+    # combined_bkg_1p1p_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp11=True, bdt=True)
+    # combined_bkg_3p3p = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp33=True)
+    # combined_bkg_3p3p_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, pp33=True, bdt=True)
+    # combined_bkg_inc = h52panda(bkg_filelist, bkg_xs, bkg_cut, ppinc=True)
+    # combined_bkg_inc_bdt = h52panda(bkg_filelist, bkg_xs, bkg_cut, ppinc=True, bdt=True)
+    # combined_bkg_1p3p['label'] = 0
+    # combined_bkg_1p3p_bdt['label'] = 0
+    # combined_bkg_1p1p['label'] = 0
+    # combined_bkg_1p1p_bdt['label'] = 0
+    # combined_bkg_3p3p['label'] = 0
+    # combined_bkg_3p3p_bdt['label'] = 0
+    # combined_bkg_inc['label'] = 0
+    # combined_bkg_inc_bdt['label'] = 0
+    # combined_bkg_1p3p['weight'] = combined_bkg_1p3p['event_weight'] * combined_bkg_1p3p['pT_weight']
+    # combined_bkg_1p3p_bdt['weight'] = combined_bkg_1p3p_bdt['event_weight'] * combined_bkg_1p3p_bdt['pT_weight']
+    # combined_bkg_1p1p['weight'] = combined_bkg_1p1p['event_weight'] * combined_bkg_1p1p['pT_weight']
+    # combined_bkg_1p1p_bdt['weight'] = combined_bkg_1p1p_bdt['event_weight'] * combined_bkg_1p1p_bdt['pT_weight']
+    # combined_bkg_3p3p['weight'] = combined_bkg_3p3p['event_weight'] * combined_bkg_3p3p['pT_weight']
+    # combined_bkg_3p3p_bdt['weight'] = combined_bkg_3p3p_bdt['event_weight'] * combined_bkg_3p3p_bdt['pT_weight']
+    # combined_bkg_inc['weight'] = combined_bkg_inc['event_weight'] * combined_bkg_inc['pT_weight']
+    # combined_bkg_inc_bdt['weight'] = combined_bkg_inc_bdt['event_weight'] * combined_bkg_inc_bdt['pT_weight']
     
-    combined_bkg_1p3p.to_csv(path+'combined_bkg_1p3p.csv', index=False)
-    combined_bkg_1p3p_bdt.to_csv(path+'combined_bkg_1p3p_bdt.csv', index=False)
-    combined_bkg_1p1p.to_csv(path+'combined_bkg_1p1p.csv', index=False)
-    combined_bkg_1p1p_bdt.to_csv(path+'combined_bkg_1p1p_bdt.csv', index=False)
-    combined_bkg_3p3p.to_csv(path+'combined_bkg_3p3p.csv', index=False)
-    combined_bkg_3p3p_bdt.to_csv(path+'combined_bkg_3p3p_bdt.csv', index=False)
-    combined_bkg_inc.to_csv(path+'combined_bkg_inc.csv', index=False)
-    combined_bkg_inc_bdt.to_csv(path+'combined_bkg_inc_bdt.csv', index=False)
+    # combined_bkg_1p3p.to_csv(path+'combined_bkg_1p3p.csv', index=False)
+    # combined_bkg_1p3p_bdt.to_csv(path+'combined_bkg_1p3p_bdt.csv', index=False)
+    # combined_bkg_1p1p.to_csv(path+'combined_bkg_1p1p.csv', index=False)
+    # combined_bkg_1p1p_bdt.to_csv(path+'combined_bkg_1p1p_bdt.csv', index=False)
+    # combined_bkg_3p3p.to_csv(path+'combined_bkg_3p3p.csv', index=False)
+    # combined_bkg_3p3p_bdt.to_csv(path+'combined_bkg_3p3p_bdt.csv', index=False)
+    # combined_bkg_inc.to_csv(path+'combined_bkg_inc.csv', index=False)
+    # combined_bkg_inc_bdt.to_csv(path+'combined_bkg_inc_bdt.csv', index=False)
+
+    combined_bkg_1p3p = pd.read_csv(path+'combined_bkg_1p3p.csv')
+    combined_bkg_1p3p_bdt = pd.read_csv(path+'combined_bkg_1p3p_bdt.csv')
+    combined_bkg_1p1p = pd.read_csv(path+'combined_bkg_1p1p.csv')
+    combined_bkg_1p1p_bdt = pd.read_csv(path+'combined_bkg_1p1p_bdt.csv')
+    combined_bkg_3p3p = pd.read_csv(path+'combined_bkg_3p3p.csv')
+    combined_bkg_3p3p_bdt = pd.read_csv(path+'combined_bkg_3p3p_bdt.csv')
+    combined_bkg_inc = pd.read_csv(path+'combined_bkg_inc.csv')
+    combined_bkg_inc_bdt = pd.read_csv(path+'combined_bkg_inc_bdt.csv')
+    print(len(combined_bkg_1p3p), len(combined_bkg_1p3p_bdt), len(combined_bkg_1p1p), len(combined_bkg_1p1p_bdt), len(combined_bkg_3p3p), len(combined_bkg_3p3p_bdt), len(combined_bkg_inc), len(combined_bkg_inc_bdt))
 
 
     # combined_signal = pd.concat([combined_graviton, combined_gamma])
@@ -160,31 +187,42 @@ def plotter():
     p = PdfPages("histogram.pdf") 
 
     # ###### roc curve with scikit 
-    # fpr_1p3p, tpr_1p3p = calc_roc(signal_scores, background_scores, signal_weight, background_weight)
-    # fpr_1p1p, tpr_1p1p = calc_roc(signal_scores_1p1p, background_scores_1p1p, signal_weight_1p1p, background_weight_1p1p)
-    # fpr_3p3p, tpr_3p3p = calc_roc(signal_scores_3p3p, background_scores_3p3p, signal_weight_3p3p, background_weight_3p3p)
-    # fpr_inc, tpr_inc = calc_roc(signal_scores_inc, background_scores_inc, signal_weight_inc, background_weight_inc)
+    fpr_1p3p, tpr_1p3p = calc_roc(combined_signal_1p3p['bdt_score'], combined_bkg_1p3p['bdt_score'], combined_signal_1p3p['weight'], combined_bkg_1p3p['weight'])
+    fpr_1p1p, tpr_1p1p = calc_roc(combined_signal_1p1p['bdt_score'], combined_bkg_1p1p['bdt_score'], combined_signal_1p1p['weight'], combined_bkg_1p1p['weight'])
+    fpr_3p3p, tpr_3p3p = calc_roc(combined_signal_3p3p['bdt_score'], combined_bkg_3p3p['bdt_score'], combined_signal_3p3p['weight'], combined_bkg_3p3p['weight'])
+    fpr_inc, tpr_inc = calc_roc(combined_signal_inc['bdt_score'], combined_bkg_inc['bdt_score'], combined_signal_inc['weight'], combined_bkg_inc['weight'])
 
-    # fpr_1p3p_w, tpr_1p3p_w = calc_roc(signal_scores, background_scores, signal_weight*weights[cuts], background_weight*bkg_weights[bkg_cuts])
-    # fpr_1p1p_w, tpr_1p1p_w = calc_roc(signal_scores_1p1p, background_scores_1p1p, signal_weight_1p1p*weights[cuts_1p1p], background_weight_1p1p*bkg_weights[bkg_cuts_1p1p])
-    # fpr_3p3p_w, tpr_3p3p_w = calc_roc(signal_scores_3p3p, background_scores_3p3p, signal_weight_3p3p*weights[cuts_3p3p], background_weight_3p3p*bkg_weights[bkg_cuts_3p3p])
-    # fpr_inc_w, tpr_inc_w = calc_roc(signal_scores_inc, background_scores_inc, signal_weight_inc*weights[cuts_inc], background_weight_inc*bkg_weights[bkg_cuts_inc])
+    fpr_1p3p_new, tpr_1p3p_new = calc_roc(combined_signal_1p3p['bdt_score_new'], combined_bkg_1p3p['bdt_score_new'], combined_signal_1p3p['weight'], combined_bkg_1p3p['weight'])
+    fpr_1p1p_new, tpr_1p1p_new = calc_roc(combined_signal_1p1p['bdt_score_new'], combined_bkg_1p1p['bdt_score_new'], combined_signal_1p1p['weight'], combined_bkg_1p1p['weight'])
+    fpr_3p3p_new, tpr_3p3p_new = calc_roc(combined_signal_3p3p['bdt_score_new'], combined_bkg_3p3p['bdt_score_new'], combined_signal_3p3p['weight'], combined_bkg_3p3p['weight'])
+    fpr_inc_new, tpr_inc_new = calc_roc(combined_signal_inc['bdt_score_new'], combined_bkg_inc['bdt_score_new'], combined_signal_inc['weight'], combined_bkg_inc['weight'])
 
-    # fig7 = plt.figure()
-    # plt.plot(tpr_1p3p, 1/fpr_1p3p, label="1p3p", color='black')
-    # plt.plot(tpr_1p1p, 1/fpr_1p1p, label="1p1p", color='orange')
-    # plt.plot(tpr_3p3p, 1/fpr_3p3p, label="3p3p", color='red')
-    # plt.plot(tpr_inc, 1/fpr_inc, label="inclusive", color='green')
-    # plt.plot(tpr_1p3p_w, 1/fpr_1p3p_w, label="1p3p weighted", linestyle='dashed', color='black')
-    # plt.plot(tpr_1p1p_w, 1/fpr_1p1p_w, label="1p1p weighted", linestyle='dashed', color='orange')
-    # plt.plot(tpr_3p3p_w, 1/fpr_3p3p_w, label="3p3p weighted", linestyle='dashed', color='red')
-    # plt.plot(tpr_inc_w, 1/fpr_inc_w, label="incl weighted", linestyle='dashed', color='green')
-    # plt.legend(loc='upper right')
-    # plt.xlabel("TPR")
-    # plt.ylabel("1/FPR")
-    # plt.yscale('log')
-    # p.savefig(fig7)
-    # plt.close(fig7)
+    #calculate auc 
+    auc_1p3p = auc(fpr_1p3p, tpr_1p3p)
+    auc_1p1p = auc(fpr_1p1p, tpr_1p1p)
+    auc_3p3p = auc(fpr_3p3p, tpr_3p3p)
+    auc_inc = auc(fpr_inc, tpr_inc)
+    auc_1p3p_new = auc(fpr_1p3p_new, tpr_1p3p_new)
+    auc_1p1p_new = auc(fpr_1p1p_new, tpr_1p1p_new)
+    auc_3p3p_new = auc(fpr_3p3p_new, tpr_3p3p_new)
+    auc_inc_new = auc(fpr_inc_new, tpr_inc_new)
+    
+    fig7 = plt.figure()
+    plt.plot(tpr_1p3p, 1/fpr_1p3p, label=f"1p3p: {auc_1p3p}" , color='black')
+    plt.plot(tpr_1p1p, 1/fpr_1p1p, label=f"1p1p: {auc_1p1p}", color='orange')
+    plt.plot(tpr_3p3p, 1/fpr_3p3p, label=f"3p3p: {auc_3p3p}", color='red')
+    plt.plot(tpr_inc, 1/fpr_inc, label=f"inclusive: {auc_inc}", color='green')
+    plt.plot(tpr_1p3p_new, 1/fpr_1p3p_new, label=f"1p3p new: {auc_1p3p_new}" , linestyle='dashed', color='black')
+    plt.plot(tpr_1p1p_new, 1/fpr_1p1p_new, label=f"1p1p new: {auc_1p1p_new}", linestyle='dashed', color='orange')
+    plt.plot(tpr_3p3p_new, 1/fpr_3p3p_new, label=f"3p3p new: {auc_3p3p_new}", linestyle='dashed', color='red')
+    plt.plot(tpr_inc_new, 1/fpr_inc_new, label=f"inclusive new: {auc_inc_new}", linestyle='dashed', color='green')
+
+    plt.legend(loc='upper right')
+    plt.xlabel("TPR")
+    plt.ylabel("1/FPR")
+    plt.yscale('log')
+    p.savefig(fig7)
+    plt.close(fig7)
 
 
     ####### plot the score distribution
@@ -192,6 +230,8 @@ def plotter():
     # plt.hist(signal_scores, bins=60, histtype="step", label="1p3p sig", color='black', weights=signal_weight)
     plt.hist(combined_bkg_1p3p['bdt_score'], bins=60, histtype="step", label="1p3p bkg", linestyle='dashed', color='black', weights=combined_bkg_1p3p['weight'])
     plt.hist(combined_bkg_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p bkg new", linestyle='dashed', color='blue', weights=combined_bkg_1p3p['weight'])
+    plt.hist(combined_signal_1p3p['bdt_score'], bins=60, histtype="step", label="1p3p sig", linestyle='dashed', color='red', weights=combined_signal_1p3p['weight'])
+    plt.hist(combined_signal_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p sig new", linestyle='dashed', color='green', weights=combined_signal_1p3p['weight'])
     # plt.hist(signal_scores_1p1p, bins=60, histtype="step", label="1p1p sig", color='orange', weights=signal_weight_1p1p)
     # plt.hist(background_scores_1p1p, bins=60, histtype="step", label="1p1p bkg", linestyle='dashed', color='orange', weights=background_weight_1p1p)
     # plt.hist(signal_scores_3p3p, bins=60, histtype="step", label="3p3p sig", color='red', weights=signal_weight_3p3p)
@@ -228,17 +268,23 @@ def plotter():
     canvas.cd()
     canvas.Print("eff_plots.pdf[")
 
+    sig_pt_list = [combined_signal_1p3p['ditau_pt'], combined_signal_1p3p_bdt['ditau_pt'], combined_signal_1p1p['ditau_pt'], combined_signal_1p1p_bdt['ditau_pt'], combined_signal_3p3p['ditau_pt'], combined_signal_3p3p_bdt['ditau_pt'], combined_signal_inc['ditau_pt'], combined_signal_inc_bdt['ditau_pt']]
+    sig_eta_list = [combined_signal_1p3p['eta'], combined_signal_1p3p_bdt['eta'], combined_signal_1p1p['eta'], combined_signal_1p1p_bdt['eta'], combined_signal_3p3p['eta'], combined_signal_3p3p_bdt['eta'], combined_signal_inc['eta'], combined_signal_inc_bdt['eta']]
+    sig_mu_list = [combined_signal_1p3p['average_mu'], combined_signal_1p3p_bdt['average_mu'], combined_signal_1p1p['average_mu'], combined_signal_1p1p_bdt['average_mu'], combined_signal_3p3p['average_mu'], combined_signal_3p3p_bdt['average_mu'], combined_signal_inc['average_mu'], combined_signal_inc_bdt['average_mu']]
+    sig_w_list = [combined_signal_1p3p['event_weight'], combined_signal_1p3p_bdt['event_weight'], combined_signal_1p1p['event_weight'], combined_signal_1p1p_bdt['event_weight'], combined_signal_3p3p['event_weight'], combined_signal_3p3p_bdt['event_weight'], combined_signal_inc['event_weight'], combined_signal_inc_bdt['event_weight']]
+
     bkg_pt_list = [combined_bkg_1p3p['ditau_pt'], combined_bkg_1p3p_bdt['ditau_pt'], combined_bkg_1p1p['ditau_pt'], combined_bkg_1p1p_bdt['ditau_pt'], combined_bkg_3p3p['ditau_pt'], combined_bkg_3p3p_bdt['ditau_pt'], combined_bkg_inc['ditau_pt'], combined_bkg_inc_bdt['ditau_pt']]
     bkg_eta_list = [combined_bkg_1p3p['eta'], combined_bkg_1p3p_bdt['eta'], combined_bkg_1p1p['eta'], combined_bkg_1p1p_bdt['eta'], combined_bkg_3p3p['eta'], combined_bkg_3p3p_bdt['eta'], combined_bkg_inc['eta'], combined_bkg_inc_bdt['eta']]
     bkg_mu_list = [combined_bkg_1p3p['average_mu'], combined_bkg_1p3p_bdt['average_mu'], combined_bkg_1p1p['average_mu'], combined_bkg_1p1p_bdt['average_mu'], combined_bkg_3p3p['average_mu'], combined_bkg_3p3p_bdt['average_mu'], combined_bkg_inc['average_mu'], combined_bkg_inc_bdt['average_mu']]
-    bkg_w_list = [combined_bkg_1p3p['weight'], combined_bkg_1p3p_bdt['weight'], combined_bkg_1p1p['weight'], combined_bkg_1p1p_bdt['weight'], combined_bkg_3p3p['weight'], combined_bkg_3p3p_bdt['weight'], combined_bkg_inc['weight'], combined_bkg_inc_bdt['weight']]
+    bkg_w_list = [combined_bkg_1p3p['event_weight'], combined_bkg_1p3p_bdt['event_weight'], combined_bkg_1p1p['event_weight'], combined_bkg_1p1p_bdt['event_weight'], combined_bkg_3p3p['event_weight'], combined_bkg_3p3p_bdt['event_weight'], combined_bkg_inc['event_weight'], combined_bkg_inc_bdt['event_weight']]
+
 
     pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "DiJet pT", 20, 200000, 1000000, eta=False)
     pt_1p3p_eff_w.SetMarkerStyle(22)
     pt_1p1p_eff_w.SetMarkerStyle(22)
     pt_3p3p_eff_w.SetMarkerStyle(22)
     pt_inc_eff_w.SetMarkerStyle(22)
-    pt_1p3p_eff_w.Draw("same e")
+    pt_1p3p_eff_w.Draw(" e")
     pt_1p1p_eff_w.Draw("same e")
     pt_3p3p_eff_w.Draw("same e")
     pt_inc_eff_w.Draw("same e")
@@ -256,7 +302,7 @@ def plotter():
     eta_1p1p_eff_w.SetMarkerStyle(22)
     eta_3p3p_eff_w.SetMarkerStyle(22)
     eta_inc_eff_w.SetMarkerStyle(22)
-    eta_1p3p_eff_w.Draw("same e")
+    eta_1p3p_eff_w.Draw(" e")
     eta_1p1p_eff_w.Draw("same e")
     eta_3p3p_eff_w.Draw("same e")
     eta_inc_eff_w.Draw("same e")
@@ -271,7 +317,7 @@ def plotter():
 
     eta_inc_eff_w.SetMarkerStyle(22)
     eta_inc_eff_w.SetLineColor(ROOT.kBlue)
-    eta_inc_eff_w.Draw("same e")
+    eta_inc_eff_w.Draw(" e")
     legend = ROOT.TLegend(0.7, 0.7, 0.7, 0.7)
     legend.AddEntry(eta_inc_eff_w, "inclusive")
     legend.Draw()
@@ -284,7 +330,7 @@ def plotter():
     mu_1p1p_eff_w.SetMarkerStyle(22)
     mu_3p3p_eff_w.SetMarkerStyle(22)
     mu_inc_eff_w.SetMarkerStyle(22)
-    mu_1p3p_eff_w.Draw("same e")
+    mu_1p3p_eff_w.Draw(" e")
     mu_1p1p_eff_w.Draw("same e")
     mu_3p3p_eff_w.Draw("same e")
     mu_inc_eff_w.Draw("same e")
@@ -299,105 +345,69 @@ def plotter():
 
     mu_inc_eff_w.SetMarkerStyle(22)
     mu_inc_eff_w.SetLineColor(ROOT.kBlue)
-    mu_inc_eff_w.Draw("same e")
+    mu_inc_eff_w.Draw(" e")
     legend = ROOT.TLegend(0.7, 0.7, 0.7, 0.7)
     legend.AddEntry(mu_inc_eff_w, "inclusive")
     legend.Draw()
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
-    # pt_sig_1p3p_eff, pt_sig_1p1p_eff, pt_sig_3p3p_eff, pt_sig_inc_eff = plot_eff(ak.flatten(f1['ditau_pt']), signal_cuts_list, "Graviton pT", 20, 200000, 1000000, signal_full_event_weight, None, eta=False)
-    # pt_sig_1p3p_eff_w, pt_sig_1p1p_eff_w, pt_sig_3p3p_eff_w, pt_sig_inc_eff_w = plot_eff(ak.flatten(f1['ditau_pt']), signal_cuts_list, "Graviton pT", 20, 200000, 1000000, signal_full_event_weight, weights, eta=False)
-    # pt_sig_1p3p_eff.SetMarkerStyle(41)
-    # pt_sig_1p1p_eff.SetMarkerStyle(41)
-    # pt_sig_3p3p_eff.SetMarkerStyle(41)
-    # pt_sig_inc_eff.SetMarkerStyle(41)
-    # pt_sig_1p3p_eff.Draw(" e")
-    # pt_sig_1p1p_eff.Draw("same e")
-    # pt_sig_3p3p_eff.Draw("same e")
-    # pt_sig_inc_eff.Draw("same e")
-    # pt_sig_1p3p_eff_w.SetMarkerStyle(22)
-    # pt_sig_1p1p_eff_w.SetMarkerStyle(22)
-    # pt_sig_3p3p_eff_w.SetMarkerStyle(22)
-    # pt_sig_inc_eff_w.SetMarkerStyle(22)
-    # pt_sig_1p3p_eff_w.Draw("same e")
-    # pt_sig_1p1p_eff_w.Draw("same e")
-    # pt_sig_3p3p_eff_w.Draw("same e")
-    # pt_sig_inc_eff_w.Draw("same e")
-    # legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
-    # legend.AddEntry(pt_sig_1p3p_eff, "1p3p")
-    # legend.AddEntry(pt_sig_1p1p_eff, "1p1p")
-    # legend.AddEntry(pt_sig_3p3p_eff, "3p3p")
-    # legend.AddEntry(pt_sig_inc_eff, "inclusive")
-    # legend.AddEntry(pt_sig_1p3p_eff_w, "1p3p w")
-    # legend.AddEntry(pt_sig_1p1p_eff_w, "1p1p w")
-    # legend.AddEntry(pt_sig_3p3p_eff_w, "3p3p w")
-    # legend.AddEntry(pt_sig_inc_eff_w, "inclusive w")
-    # legend.Draw()
-    # canvas.Print("eff_plots.pdf")
-    # canvas.Clear()
 
-    # eta_sig_1p3p_eff, eta_sig_1p1p_eff, eta_sig_3p3p_eff, eta_sig_inc_eff = plot_eff(ak.flatten(f1['DiTauJetsAux.eta']), signal_cuts_list, "Graviton eta", 40, -2.5, 2.5, signal_full_event_weight, None, eta=True)
-    # eta_sig_1p3p_eff_w, eta_sig_1p1p_eff_w, eta_sig_3p3p_eff_w, eta_sig_inc_eff_w = plot_eff(ak.flatten(f1['DiTauJetsAux.eta']), signal_cuts_list, "Graviton eta", 40, -2.5, 2.5, signal_full_event_weight, weights, eta=True)
-    # eta_sig_1p3p_eff.SetMarkerStyle(41)
-    # eta_sig_1p1p_eff.SetMarkerStyle(41)
-    # eta_sig_3p3p_eff.SetMarkerStyle(41)
-    # eta_sig_inc_eff.SetMarkerStyle(41)
-    # eta_sig_1p3p_eff.Draw(" e")
-    # eta_sig_1p1p_eff.Draw("same e")
-    # eta_sig_3p3p_eff.Draw("same e")
-    # eta_sig_inc_eff.Draw("same e")
-    # eta_sig_1p3p_eff_w.SetMarkerStyle(22)
-    # eta_sig_1p1p_eff_w.SetMarkerStyle(22)
-    # eta_sig_3p3p_eff_w.SetMarkerStyle(22)
-    # eta_sig_inc_eff_w.SetMarkerStyle(22)
-    # eta_sig_1p3p_eff_w.Draw("same e")
-    # eta_sig_1p1p_eff_w.Draw("same e")
-    # eta_sig_3p3p_eff_w.Draw("same e")
-    # eta_sig_inc_eff_w.Draw("same e")
-    # legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
-    # legend.AddEntry(eta_sig_1p3p_eff, "1p3p")
-    # legend.AddEntry(eta_sig_1p1p_eff, "1p1p")
-    # legend.AddEntry(eta_sig_3p3p_eff, "3p3p")
-    # legend.AddEntry(eta_sig_inc_eff, "inclusive")
-    # legend.AddEntry(eta_sig_1p3p_eff_w, "1p3p w")
-    # legend.AddEntry(eta_sig_1p1p_eff_w, "1p1p w")
-    # legend.AddEntry(eta_sig_3p3p_eff_w, "3p3p w")
-    # legend.AddEntry(eta_sig_inc_eff_w, "inclusive w")
-    # legend.Draw()
-    # canvas.Print("eff_plots.pdf")
-    # canvas.Clear()
+    ##### signal eff plots
 
-    # mu_sig_1p3p_eff, mu_sig_1p1p_eff, mu_sig_3p3p_eff, mu_sig_inc_eff = plot_eff(new_mu, signal_cuts_list, "Graviton mu", 20, 18, 74, signal_full_event_weight, None, eta=False)
-    # mu_sig_1p3p_eff_w, mu_sig_1p1p_eff_w, mu_sig_3p3p_eff_w, mu_sig_inc_eff_w = plot_eff(new_mu, signal_cuts_list, "Graviton mu", 20, 18, 74, signal_full_event_weight, weights, eta=False)
-    # mu_sig_1p3p_eff.SetMarkerStyle(41)
-    # mu_sig_1p1p_eff.SetMarkerStyle(41)
-    # mu_sig_3p3p_eff.SetMarkerStyle(41)
-    # mu_sig_inc_eff.SetMarkerStyle(41)
-    # mu_sig_1p3p_eff.Draw(" e")
-    # mu_sig_1p1p_eff.Draw("same e")
-    # mu_sig_3p3p_eff.Draw("same e")
-    # mu_sig_inc_eff.Draw("same e")
-    # mu_sig_1p3p_eff_w.SetMarkerStyle(22)
-    # mu_sig_1p1p_eff_w.SetMarkerStyle(22)
-    # mu_sig_3p3p_eff_w.SetMarkerStyle(22)
-    # mu_sig_inc_eff_w.SetMarkerStyle(22)
-    # mu_sig_1p3p_eff_w.Draw("same e")
-    # mu_sig_1p1p_eff_w.Draw("same e")
-    # mu_sig_3p3p_eff_w.Draw("same e")
-    # mu_sig_inc_eff_w.Draw("same e")
-    # legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
-    # legend.AddEntry(mu_sig_1p3p_eff, "1p3p")
-    # legend.AddEntry(mu_sig_1p1p_eff, "1p1p")
-    # legend.AddEntry(mu_sig_3p3p_eff, "3p3p")
-    # legend.AddEntry(mu_sig_inc_eff, "inclusive")
-    # legend.AddEntry(mu_sig_1p3p_eff_w, "1p3p w")
-    # legend.AddEntry(mu_sig_1p1p_eff_w, "1p1p w")
-    # legend.AddEntry(mu_sig_3p3p_eff_w, "3p3p w")
-    # legend.AddEntry(mu_sig_inc_eff_w, "inclusive w")
-    # legend.Draw()
-    # canvas.Print("eff_plots.pdf")
-    # canvas.Clear()
+    pt_sig_1p3p_eff_w, pt_sig_1p1p_eff_w, pt_sig_3p3p_eff_w, pt_sig_inc_eff_w = plot_eff(sig_pt_list, sig_w_list, "Signal pT", 20, 200000, 1000000, eta=False)
+    pt_sig_1p3p_eff_w.SetMarkerStyle(22)
+    pt_sig_1p1p_eff_w.SetMarkerStyle(22)
+    pt_sig_3p3p_eff_w.SetMarkerStyle(22)
+    pt_sig_inc_eff_w.SetMarkerStyle(22)
+    pt_sig_1p3p_eff_w.Draw(" e")
+    pt_sig_1p1p_eff_w.Draw("same e")
+    pt_sig_3p3p_eff_w.Draw("same e")
+    pt_sig_inc_eff_w.Draw("same e")
+    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend.AddEntry(pt_sig_1p3p_eff_w, "1p3p w")
+    legend.AddEntry(pt_sig_1p1p_eff_w, "1p1p w")
+    legend.AddEntry(pt_sig_3p3p_eff_w, "3p3p w")
+    legend.AddEntry(pt_sig_inc_eff_w, "inclusive w")
+    legend.Draw()
+    canvas.Print("eff_plots.pdf")
+    canvas.Clear()
+
+    eta_sig_1p3p_eff_w, eta_sig_1p1p_eff_w, eta_sig_3p3p_eff_w, eta_sig_inc_eff_w = plot_eff(sig_eta_list, sig_w_list, "Signal eta", 40, -2.5, 2.5, eta=True)
+    eta_sig_1p3p_eff_w.SetMarkerStyle(22)
+    eta_sig_1p1p_eff_w.SetMarkerStyle(22)
+    eta_sig_3p3p_eff_w.SetMarkerStyle(22)
+    eta_sig_inc_eff_w.SetMarkerStyle(22)
+    eta_sig_1p3p_eff_w.Draw(" e")
+    eta_sig_1p1p_eff_w.Draw("same e")
+    eta_sig_3p3p_eff_w.Draw("same e")
+    eta_sig_inc_eff_w.Draw("same e")
+    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend.AddEntry(eta_sig_1p3p_eff_w, "1p3p w")
+    legend.AddEntry(eta_sig_1p1p_eff_w, "1p1p w")
+    legend.AddEntry(eta_sig_3p3p_eff_w, "3p3p w")
+    legend.AddEntry(eta_sig_inc_eff_w, "inclusive w")
+    legend.Draw()
+    canvas.Print("eff_plots.pdf")
+    canvas.Clear()
+
+    mu_sig_1p3p_eff_w, mu_sig_1p1p_eff_w, mu_sig_3p3p_eff_w, mu_sig_inc_eff_w = plot_eff(sig_mu_list, sig_w_list, "Signal mu", 20, 18, 74, eta=False)
+    mu_sig_1p3p_eff_w.SetMarkerStyle(22)
+    mu_sig_1p1p_eff_w.SetMarkerStyle(22)
+    mu_sig_3p3p_eff_w.SetMarkerStyle(22)
+    mu_sig_inc_eff_w.SetMarkerStyle(22)
+    mu_sig_1p3p_eff_w.Draw(" e")
+    mu_sig_1p1p_eff_w.Draw("same e")
+    mu_sig_3p3p_eff_w.Draw("same e")
+    mu_sig_inc_eff_w.Draw("same e")
+    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend.AddEntry(mu_sig_1p3p_eff_w, "1p3p w")
+    legend.AddEntry(mu_sig_1p1p_eff_w, "1p1p w")
+    legend.AddEntry(mu_sig_3p3p_eff_w, "3p3p w")
+    legend.AddEntry(mu_sig_inc_eff_w, "inclusive w")
+    legend.Draw()
+    canvas.Print("eff_plots.pdf")
+    canvas.Clear()
 
     # sig_score_1p3p = plt_to_root_hist_w(signal_scores, 100, 0, 1, signal_weight, False)
     # bkg_score_1p3p = plt_to_root_hist_w(background_scores, 100, 0, 1, background_weight, False)
@@ -426,7 +436,7 @@ def plotter():
     # root_3p3p_roc_w = create_roc_graph(sig_score_3p3p_w, bkg_score_3p3p_w, effmin=0.05, name="3p3p_w", normalize=False, reverse=False)
     # root_inc_roc_w = create_roc_graph(sig_score_inc_w, bkg_score_inc_w, effmin=0.05, name="inc_w", normalize=False, reverse=False)
 
-    ##set colors and styles
+    # #set colors and styles
     # root_1p3p_roc.SetLineColor(ROOT.kBlack)
     # root_1p1p_roc.SetLineColor(ROOT.kOrange)
     # root_3p3p_roc.SetLineColor(ROOT.kRed)
@@ -465,7 +475,7 @@ def plotter():
     # canvas.Clear()
 
 
-    bk_pt_plt = plt_to_root_hist_w(bkg_pt, 100, 200000, 1000000, bkg_weights, False)
+    bk_pt_plt = plt_to_root_hist_w(combined_bkg_1p3p['ditau_pt'], 100, 200000, 1000000, combined_bkg_1p3p['event_weight'], False)
     bk_pt_plt.Draw("hist e")
     ROOT.gPad.SetLogy()
     canvas.Print("eff_plots.pdf")
@@ -473,6 +483,8 @@ def plotter():
 
 
     canvas.Print("eff_plots.pdf]")
+
+
 
 
 

@@ -368,6 +368,11 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False):
     pt_3p3p_eff = make_eff_hist(pt_3p3p_num, pt_3p3p_dnom, "3p3p_eff")
     pt_inc_eff = make_eff_hist(pt_inc_num, pt_inc_dnom, "inc_eff")
 
+    # pt_1p3p_eff = make_eff_hist(pt_1p3p_dnom, pt_1p3p_num, "1p3p_eff")
+    # pt_1p1p_eff = make_eff_hist(pt_1p1p_dnom, pt_1p1p_num, "1p1p_eff")
+    # pt_3p3p_eff = make_eff_hist(pt_3p3p_dnom, pt_3p3p_num, "3p3p_eff")
+    # pt_inc_eff = make_eff_hist(pt_inc_dnom, pt_inc_num, "inc_eff")
+
     pt_1p3p_eff.GetYaxis().SetRangeUser(0, 1)
     pt_1p1p_eff.GetYaxis().SetRangeUser(0, 1)
     pt_3p3p_eff.GetYaxis().SetRangeUser(0, 1)
