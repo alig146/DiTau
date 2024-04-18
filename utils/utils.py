@@ -24,7 +24,7 @@ def divide_hists(h_num, h_den, name=None, eff=False):
 
 def make_eff_hist(h_pass, h_total, name=None):
     h = divide_hists(h_pass, h_total, name=name or "h_eff", eff=True)
-    h.GetYaxis().SetTitle('Efficiency')
+    # h.GetYaxis().SetTitle('Efficiency')
     return h
 
 def make_eff_graph(h_pass, h_total, name=None):
@@ -133,7 +133,8 @@ def calc_roc_curve(signal_hist, background_hist):
     return tpr, fpr
 
 def getXS(dsid):
-    xs_file = "/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PMGTools/PMGxsecDB_mc16.txt"
+    # xs_file = "/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PMGTools/PMGxsecDB_mc16.txt"
+    xs_file = "/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PMGTools/PMGxsecDB_mc23.txt"
     try:
         with open(xs_file, "r") as f:
             for line in f:
@@ -352,7 +353,7 @@ def flattened_pt_weighted(data, bins, weight):
 
 #     return pt_1p3p_eff, pt_1p1p_eff, pt_3p3p_eff, pt_inc_eff
 
-def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False):
+def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
     
     pt_1p3p_dnom = plt_to_root_hist_w(data[0], num_bins, x_min, x_max, weights[0], eta)
     pt_1p3p_num =  plt_to_root_hist_w(data[1], num_bins, x_min, x_max, weights[1], eta)
@@ -368,15 +369,16 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False):
     pt_3p3p_eff = make_eff_hist(pt_3p3p_num, pt_3p3p_dnom, "3p3p_eff")
     pt_inc_eff = make_eff_hist(pt_inc_num, pt_inc_dnom, "inc_eff")
 
-    # pt_1p3p_eff = make_eff_hist(pt_1p3p_dnom, pt_1p3p_num, "1p3p_eff")
-    # pt_1p1p_eff = make_eff_hist(pt_1p1p_dnom, pt_1p1p_num, "1p1p_eff")
-    # pt_3p3p_eff = make_eff_hist(pt_3p3p_dnom, pt_3p3p_num, "3p3p_eff")
-    # pt_inc_eff = make_eff_hist(pt_inc_dnom, pt_inc_num, "inc_eff")
-
-    pt_1p3p_eff.GetYaxis().SetRangeUser(0, 1)
-    pt_1p1p_eff.GetYaxis().SetRangeUser(0, 1)
-    pt_3p3p_eff.GetYaxis().SetRangeUser(0, 1)
-    pt_inc_eff.GetYaxis().SetRangeUser(0, 1)
+    if bkg:
+        pt_1p3p_eff.GetYaxis().SetRangeUser(0, 15)
+        pt_1p1p_eff.GetYaxis().SetRangeUser(0, 15)
+        pt_3p3p_eff.GetYaxis().SetRangeUser(0, 15)
+        pt_inc_eff.GetYaxis().SetRangeUser(0, 15)
+    else:
+        pt_1p3p_eff.GetYaxis().SetRangeUser(0, 1.1)
+        pt_1p1p_eff.GetYaxis().SetRangeUser(0, 1.1)
+        pt_3p3p_eff.GetYaxis().SetRangeUser(0, 1.1)
+        pt_inc_eff.GetYaxis().SetRangeUser(0, 1.1)
 
     pt_1p3p_eff.GetXaxis().SetRangeUser(x_min, x_max)
     pt_1p1p_eff.GetXaxis().SetRangeUser(x_min, x_max)
@@ -387,11 +389,22 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False):
     pt_1p1p_eff.GetXaxis().SetTitle(name)
     pt_3p3p_eff.GetXaxis().SetTitle(name)
     pt_inc_eff.GetXaxis().SetTitle(name)
-    
-    pt_1p3p_eff.SetLineColor(ROOT.kBlack)
-    pt_1p1p_eff.SetLineColor(ROOT.kOrange)
-    pt_3p3p_eff.SetLineColor(ROOT.kRed)
-    pt_inc_eff.SetLineColor(ROOT.kGreen)
+
+    if bkg:
+        pt_1p3p_eff.GetYaxis().SetTitle('1/Efficiency')
+        pt_1p1p_eff.GetYaxis().SetTitle('1/Efficiency')
+        pt_3p3p_eff.GetYaxis().SetTitle('1/Efficiency')
+        pt_inc_eff.GetYaxis().SetTitle('1/Efficiency')
+    else:
+        pt_1p3p_eff.GetYaxis().SetTitle('Efficiency')
+        pt_1p1p_eff.GetYaxis().SetTitle('Efficiency')
+        pt_3p3p_eff.GetYaxis().SetTitle('Efficiency')
+        pt_inc_eff.GetYaxis().SetTitle('Efficiency')
+
+    pt_1p3p_eff.SetLineColor(ROOT.kBlue+1)
+    pt_1p1p_eff.SetLineColor(ROOT.kOrange+8)
+    pt_3p3p_eff.SetLineColor(ROOT.kAzure+8)
+    pt_inc_eff.SetLineColor(ROOT.kSpring-5)
 
     return pt_1p3p_eff, pt_1p1p_eff, pt_3p3p_eff, pt_inc_eff
 

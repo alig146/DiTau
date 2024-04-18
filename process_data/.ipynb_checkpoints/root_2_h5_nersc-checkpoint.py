@@ -24,7 +24,7 @@ branches = ['EventInfoAux.eventNumber',
 
 path = '/global/cfs/cdirs/atlas/projecta/atlas/atlaslocalgroupdisk/rucio/user/agarabag'
 
-file_paths = [
+#file_paths = [
 # path+'/*/*/user.agarabag.37406367*.root',
 # path+'/*/*/user.agarabag.37406369*.root',
 # path+'/*/*/user.agarabag.37445457*.root',
@@ -34,9 +34,24 @@ file_paths = [
 # path+'/*/*/user.agarabag.37406384*.root',
 # path+'/*/*/user.agarabag.37406387*.root',
 # path+'/*/*/user.agarabag.37406390*.root',
-path+'/*/*/user.agarabag.37406393*.root']   
+# path+'/*/*/user.agarabag.37406393*.root',   
 # path+'/*/*/user.agarabag.37406398*.root',
 # path+'/*/*/user.agarabag.37406404*.root']
+
+##ntuple samples with tracking info
+file_paths = [
+path+'/*/*/user.agarabag.37404064*.root',
+path+'/*/*/user.agarabag.37404066*.root',
+path+'/*/*/user.agarabag.37449714*.root',
+path+'/*/*/user.agarabag.37404075*.root',
+path+'/*/*/user.agarabag.37404080*.root',
+path+'/*/*/user.agarabag.37404088*.root',
+path+'/*/*/user.agarabag.37404090*.root',
+path+'/*/*/user.agarabag.37404093*.root',
+path+'/*/*/user.agarabag.37404096*.root',
+path+'/*/*/user.agarabag.37404098*.root',   
+path+'/*/*/user.agarabag.37404100*.root',
+path+'/*/*/user.agarabag.37404103*.root']
 
 
 for index in range(len(file_paths)):
@@ -116,7 +131,7 @@ for index in range(len(file_paths)):
         
 
     # Create an H5 file
-    h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/dijet_flattened_jz{index+1}.h5', 'w')
+    h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/dijet_ntuple_flattened_jz{index+1}.h5', 'w')
     # Create datasets in the H5 file
     h5_file.create_dataset('event_id', data=ak.to_numpy(ak.concatenate(event_id)), compression='gzip')
     h5_file.create_dataset('eta', data=ak.to_numpy(ak.concatenate(eta)), compression='gzip')

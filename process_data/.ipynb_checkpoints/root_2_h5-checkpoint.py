@@ -25,18 +25,18 @@ branches = ['EventInfoAux.eventNumber',
 path = '/global/cfs/cdirs/atlas/projecta/atlas/atlaslocalgroupdisk/rucio/user/agarabag'
 
 file_paths = [
-# path+'/*/*/user.agarabag.37406367*.root',
-# path+'/*/*/user.agarabag.37406369*.root',
-# path+'/*/*/user.agarabag.37445457*.root',
-# path+'/*/*/user.agarabag.37406375*.root',
-# path+'/*/*/user.agarabag.37406377*.root',
-# path+'/*/*/user.agarabag.37406380*.root',
-# path+'/*/*/user.agarabag.37406384*.root',
-# path+'/*/*/user.agarabag.37406387*.root',
-# path+'/*/*/user.agarabag.37406390*.root',
-path+'/*/*/user.agarabag.37406393*.root']   
-# path+'/*/*/user.agarabag.37406398*.root',
-# path+'/*/*/user.agarabag.37406404*.root']
+path+'/*/*/user.agarabag.37406367*.root',
+path+'/*/*/user.agarabag.37406369*.root',
+path+'/*/*/user.agarabag.37445457*.root',
+path+'/*/*/user.agarabag.37406375*.root',
+path+'/*/*/user.agarabag.37406377*.root',
+path+'/*/*/user.agarabag.37406380*.root',
+path+'/*/*/user.agarabag.37406384*.root',
+path+'/*/*/user.agarabag.37406387*.root',
+path+'/*/*/user.agarabag.37406390*.root',
+path+'/*/*/user.agarabag.37406393*.root',   
+path+'/*/*/user.agarabag.37406398*.root',
+path+'/*/*/user.agarabag.37406404*.root']
 
 
 for index in range(len(file_paths)):

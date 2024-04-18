@@ -6,6 +6,7 @@ import h5py
 
 branches = ['EventInfoAux.eventNumber',
             'DiTauJetsAuxDyn.BDTScore',
+            'DiTauJetsAuxDyn.BDTScoreNew',
             'DiTauJetsAuxDyn.ditau_pt',
             'DiTauJetsAuxDyn.n_subjets',
             'EventInfoAuxDyn.mcEventWeights',
@@ -18,35 +19,30 @@ branches = ['EventInfoAux.eventNumber',
             'DiTauJetsAuxDyn.f_core_lead', 'DiTauJetsAuxDyn.f_core_subl', 'DiTauJetsAuxDyn.f_subjet_subl',
             'DiTauJetsAuxDyn.f_subjets', 'DiTauJetsAuxDyn.f_isotracks', 
             'DiTauJetsAuxDyn.m_core_lead', 'DiTauJetsAuxDyn.m_core_subl', 
-            'DiTauJetsAuxDyn.m_tracks_lead', 'DiTauJetsAuxDyn.m_tracks_subl', 'DiTauJetsAuxDyn.n_track']
+            'DiTauJetsAuxDyn.m_tracks_lead', 'DiTauJetsAuxDyn.m_tracks_subl', 'DiTauJetsAuxDyn.n_track', 'EventInfoAuxDyn.averageInteractionsPerCrossing', 'DiTauJetsAux.eta']
 
 
-path = '/global/homes/a/agarabag/pscratch/ditdau_samples/'
+path = '/global/cfs/cdirs/atlas/projecta/atlas/atlaslocalgroupdisk/rucio/user/agarabag'
+
 file_paths = [
-# path+'user.agarabag.G_hh_4tau_MC20.425101.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_4tau_c10_M1750_v0_output.root/user.*.output.root',
-# path+'user.agarabag.G_hh_4tau_MC20.425104.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_4tau_c10_M2500_v0_output.root/user.*.output.root',
-# path+'user.agarabag.G_hh_4tau_MC20.425107.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_4tau_c10_M5000_v0_output.root/user.*.output.root',
-# path+'user.agarabag.G_hh_4tau_MC20.425108.MadGraphPythia8EvtGen_A14NNPDF23LO_RS_G_hh_4tau_c10_M1000_v0_output.root/user.*.output.root',
-path+'MC20_Gammatautau.root']
+path+'/*/*/user.agarabag.37406367*.root',
+path+'/*/*/user.agarabag.37406369*.root',
+path+'/*/*/user.agarabag.37445457*.root',
+path+'/*/*/user.agarabag.37406375*.root',
+path+'/*/*/user.agarabag.37406377*.root',
+path+'/*/*/user.agarabag.37406380*.root',
+path+'/*/*/user.agarabag.37406384*.root',
+path+'/*/*/user.agarabag.37406387*.root',
+path+'/*/*/user.agarabag.37406390*.root',
+path+'/*/*/user.agarabag.37406393*.root',   
+path+'/*/*/user.agarabag.37406398*.root',
+path+'/*/*/user.agarabag.37406404*.root']
 
-# file_paths = [
-#         path+'user.agarabag.DiJetMC20_JZ0.364700.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ0WithSW_v0_output.root/user.*.output.root',
-#         path+'user.agarabag.DiTauMC20.364701.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1WithSW_v0_output.root/user.*.output.root',
-#         path+'user.agarabag.DiTauMC20.364702.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2WithSW_v0_output.root/user.*.output.root']
-         # path+'user.agarabag.DiTauMC20.364703.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ3WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364704.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364705.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364706.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ6WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364707.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ7WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364708.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364709.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ9WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364710.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ10WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364711.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ11WithSW_v0_output.root/user.*.output.root',
-         # path+'user.agarabag.DiTauMC20.364712.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ12WithSW_v0_output.root/user.*.output.root']
 
 for index in range(len(file_paths)):
     l1 = glob.glob(os.path.join(file_paths[index]))
-    
+    print("processing: ", l1)
+
     ditau_pt = []
     n_subjets = []
     IsTruthHadronic = []
@@ -71,11 +67,12 @@ for index in range(len(file_paths)):
     event_weight = []
     event_weight_sum = []
     bdt_score = []
+    bdt_score_new = []
     event_id = []
+    eta = []
+    average_mu = []
     
-
     for i in range(len(l1)):
-        print("processing: ", l1[i])
         f_1 = uproot.open(l1[i]+':CollectionTree')
         events = f_1.arrays(branches, library='ak')
         
@@ -86,8 +83,13 @@ for index in range(len(file_paths)):
 
         flatten_event_weight = np.repeat(ak.firsts(events['EventInfoAuxDyn.mcEventWeights']), ak.num(events['DiTauJetsAuxDyn.ditau_pt']))
         flatten_event_id = np.repeat(events['EventInfoAux.eventNumber'], ak.num(events['DiTauJetsAuxDyn.ditau_pt']))
+        flatten_avg_mu = np.repeat(events['EventInfoAuxDyn.averageInteractionsPerCrossing'], ak.num(events['DiTauJetsAuxDyn.ditau_pt']))
+        
         event_id.append(flatten_event_id)
+        average_mu.append(flatten_avg_mu)
+        eta.append(ak.flatten(events['DiTauJetsAux.eta']))
         bdt_score.append(ak.flatten(events['DiTauJetsAuxDyn.BDTScore']))
+        bdt_score_new.append(ak.flatten(events['DiTauJetsAuxDyn.BDTScoreNew']))
         ditau_pt.append(ak.flatten(events['DiTauJetsAuxDyn.ditau_pt']))
         n_subjets.append(ak.flatten(events['DiTauJetsAuxDyn.n_subjets']))
         IsTruthHadronic.append(ak.flatten(events['DiTauJetsAuxDyn.IsTruthHadronic']))
@@ -114,12 +116,15 @@ for index in range(len(file_paths)):
         
 
     # Create an H5 file
-    h5_file = h5py.File(f'gamma_flattened_{index}.h5', 'w')
+    h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/dijet_flattened_jz{index+1}.h5', 'w')
     # Create datasets in the H5 file
     h5_file.create_dataset('event_id', data=ak.to_numpy(ak.concatenate(event_id)), compression='gzip')
+    h5_file.create_dataset('eta', data=ak.to_numpy(ak.concatenate(eta)), compression='gzip')
+    h5_file.create_dataset('average_mu', data=ak.to_numpy(ak.concatenate(average_mu)), compression='gzip')
     h5_file.create_dataset('bdt_score', data=ak.to_numpy(ak.concatenate(bdt_score)), compression='gzip')
+    h5_file.create_dataset('bdt_score_new', data=ak.to_numpy(ak.concatenate(bdt_score_new)), compression='gzip')
     h5_file.create_dataset('ditau_pt', data=ak.to_numpy(ak.concatenate(ditau_pt)), compression='gzip')
-    h5_file.create_dataset('n_subjets', data=ak.to_numpy(ak.concatenate(n_subjets)), compression='gzip') ####was not compressed 
+    h5_file.create_dataset('n_subjets', data=ak.to_numpy(ak.concatenate(n_subjets)), compression='gzip')
     h5_file.create_dataset('IsTruthHadronic', data=ak.to_numpy(ak.concatenate(IsTruthHadronic)), compression='gzip')
     h5_file.create_dataset('n_tracks_lead', data=ak.to_numpy(ak.concatenate(n_tracks_lead)), compression='gzip')
     h5_file.create_dataset('n_tracks_subl', data=ak.to_numpy(ak.concatenate(n_tracks_subl)), compression='gzip')
