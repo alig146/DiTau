@@ -15,8 +15,8 @@ def plotter():
     # combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
     # combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
     combined_bkg = pd.read_csv(path+'inc_bdt_bkg.csv')
-    # combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
-    combined_signal = pd.read_csv(path+'inc_bdt_vhtautau.csv')
+    combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
+    # combined_signal = pd.read_csv(path+'inc_bdt_vhtautau.csv')
 
     class DataFrameCuts:
         def __init__(self, df_bkg, df_signal):
@@ -121,7 +121,7 @@ def plotter():
     combined_signal_3p3p_bdt = combined_bdt['signal']['3p3p']
     combined_signal_inc_bdt = combined_bdt['signal']['inc']
 
-
+    print("TTTTT: ", combined_signal_inc_bdt)
     
 
     # use non trained data
@@ -281,7 +281,7 @@ def plotter():
     pt_1p1p_eff_w.Draw("same e")
     pt_3p3p_eff_w.Draw("same e")
     pt_inc_eff_w.Draw("same e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(pt_1p3p_eff_w, "1p3p")
@@ -290,10 +290,10 @@ def plotter():
     legend.AddEntry(pt_inc_eff_w, "inclusive")
     legend.SetFillStyle(0)
     legend.Draw()
-    # tex = ROOT.TLatex()
-    # tex.SetNDC()
-    # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.85, "#bf{#it{ATLAS}} Preliminary")
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.035)
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -314,7 +314,7 @@ def plotter():
     eta_1p1p_eff_w.Draw("same e")
     eta_3p3p_eff_w.Draw("same e")
     eta_inc_eff_w.Draw("same e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(eta_1p3p_eff_w, "1p3p")
@@ -325,7 +325,7 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.85, "#bf{#it{ATLAS}} Preliminary")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -334,7 +334,7 @@ def plotter():
     eta_inc_eff_w.SetMarkerColor(ROOT.kSpring-5)
     eta_inc_eff_w.SetLineColor(ROOT.kSpring-5)
     eta_inc_eff_w.Draw(" e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(eta_inc_eff_w, "inclusive")
@@ -342,7 +342,7 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.85, "#bf{#it{ATLAS}} Preliminary")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -364,7 +364,7 @@ def plotter():
     mu_1p1p_eff_w.Draw("same e")
     mu_3p3p_eff_w.Draw("same e")
     mu_inc_eff_w.Draw("same e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(mu_1p3p_eff_w, "1p3p")
@@ -375,7 +375,7 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.85, "#bf{#it{ATLAS}} Preliminary")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -384,7 +384,7 @@ def plotter():
     mu_inc_eff_w.SetMarkerColor(ROOT.kSpring-5)
     mu_inc_eff_w.SetLineColor(ROOT.kSpring-5)
     mu_inc_eff_w.Draw(" e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(mu_inc_eff_w, "inclusive")
@@ -392,7 +392,7 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.85, "#bf{#it{ATLAS}} Preliminary")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -416,7 +416,7 @@ def plotter():
     pt_sig_1p1p_eff_w.Draw("same e")
     pt_sig_3p3p_eff_w.Draw("same e")
     pt_sig_inc_eff_w.Draw("same e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(pt_sig_1p3p_eff_w, "1p3p")
@@ -427,7 +427,8 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.25, "#bf{#it{ATLAS}} Preliminary")
+    # tex.DrawLatex(0.2+0.02,0.25, "#bf{#it{ATLAS}} Internal")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -448,7 +449,7 @@ def plotter():
     eta_sig_1p1p_eff_w.Draw("same e")
     eta_sig_3p3p_eff_w.Draw("same e")
     eta_sig_inc_eff_w.Draw("same e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.AddEntry(eta_sig_1p3p_eff_w, "1p3p")
@@ -459,7 +460,7 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.25, "#bf{#it{ATLAS}} Preliminary")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -480,7 +481,7 @@ def plotter():
     mu_sig_1p1p_eff_w.Draw("same e")
     mu_sig_3p3p_eff_w.Draw("same e")
     mu_sig_inc_eff_w.Draw("same e")
-    legend = ROOT.TLegend(0.8, 0.8, 0.9, 0.9)
+    legend = ROOT.TLegend(0.75, 0.75, 0.9, 0.9)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     # legend.SetFillStyle(3005)
@@ -492,7 +493,7 @@ def plotter():
     # tex = ROOT.TLatex()
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
-    # tex.DrawLatex(0.2+0.02,0.25, "#bf{#it{ATLAS}} Preliminary")
+    tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
