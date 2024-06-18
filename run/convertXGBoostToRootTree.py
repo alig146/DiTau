@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2002-2020 CERN for the benefit of the ATLAS collaboration
 # python convertXGBoostToRootTree.py bdt_results/xgb_model.model bdt_results/xgb_model.root --objective binary:logistic --tree-name BDT
 
 __doc__ = "Convert XGBoost model to TTree to be used with MVAUtils."
 __author__ = "Yuan-Tang Chou & Ali Garabaglu"
-
 
 try:
     import xgboost as xgb
@@ -18,7 +16,6 @@ import time
 import json
 import logging
 logging.basicConfig(level=logging.DEBUG)
-
 
 class XBGoostTextNode(dict):
     """
