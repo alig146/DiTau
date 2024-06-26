@@ -14,7 +14,11 @@ def plotter():
     path = "/global/u2/a/agarabag/pscratch/ditdau_samples/"
     # combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
     # combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
-    combined_bkg = pd.read_csv(path+'inc_bdt_bkg.csv')
+    ####nominal
+    # combined_bkg = pd.read_csv(path+'inc_bdt_bkg.csv')
+    # combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
+    ####
+    combined_bkg = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/inc_bdt_bkg.csv')
     combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
     # combined_signal = pd.read_csv(path+'inc_bdt_vhtautau.csv')
 
@@ -66,10 +70,15 @@ def plotter():
     channel = ['1p3p', '1p1p', '3p3p', 'inc']
     color = ['red', 'darkorange', 'green', 'steelblue']
     
-    combined_bkg = combined_bkg[combined_bkg['inc_new_bdt']>0]
-    combined_signal = combined_signal[combined_signal['inc_new_bdt']>0]
-    combined_bkg_bdt = combined_bkg[combined_bkg['inc_new_bdt'] > 0.045]
-    combined_signal_bdt = combined_signal[combined_signal['inc_new_bdt'] > 0.957]
+    # combined_bkg = combined_bkg[combined_bkg['inc_new_bdt']>0]
+    # combined_signal = combined_signal[combined_signal['inc_new_bdt']>0]
+    # combined_bkg_bdt = combined_bkg[combined_bkg['inc_new_bdt'] > 0.045]
+    # combined_signal_bdt = combined_signal[combined_signal['inc_new_bdt'] > 0.957]
+
+    combined_bkg = combined_bkg[combined_bkg['bdt_score_new']>0]
+    combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
+    combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
+    combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
     ############################
     # combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
     # combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
@@ -121,7 +130,7 @@ def plotter():
     combined_signal_3p3p_bdt = combined_bdt['signal']['3p3p']
     combined_signal_inc_bdt = combined_bdt['signal']['inc']
 
-    print("TTTTT: ", combined_signal_inc_bdt)
+    # print("TTTTT: ", combined_signal_inc_bdt)
     
 
     # use non trained data
@@ -244,6 +253,8 @@ def plotter():
     # ROOT.gROOT.SetBatch(True)
     canvas = ROOT.TCanvas("canvas", "eff_plots", 500, 500)
     canvas.cd()
+    # canvas.SetLeftMargin(0.1)
+    # canvas.SetBottomMargin(0.1)
     canvas.Print("eff_plots.pdf[")
 
     sig_pt_list = [combined_signal_1p3p['ditau_pt']/1e6, combined_signal_1p3p_bdt['ditau_pt']/1e6, combined_signal_1p1p['ditau_pt']/1e6, combined_signal_1p1p_bdt['ditau_pt']/1e6, combined_signal_3p3p['ditau_pt']/1e6, combined_signal_3p3p_bdt['ditau_pt']/1e6, combined_signal_inc['ditau_pt']/1e6, combined_signal_inc_bdt['ditau_pt']/1e6]
@@ -251,18 +262,15 @@ def plotter():
     sig_mu_list = [combined_signal_1p3p['average_mu'], combined_signal_1p3p_bdt['average_mu'], combined_signal_1p1p['average_mu'], combined_signal_1p1p_bdt['average_mu'], combined_signal_3p3p['average_mu'], combined_signal_3p3p_bdt['average_mu'], combined_signal_inc['average_mu'], combined_signal_inc_bdt['average_mu']]
     sig_w_list = [combined_signal_1p3p['event_weight'], combined_signal_1p3p_bdt['event_weight'], combined_signal_1p1p['event_weight'], combined_signal_1p1p_bdt['event_weight'], combined_signal_3p3p['event_weight'], combined_signal_3p3p_bdt['event_weight'], combined_signal_inc['event_weight'], combined_signal_inc_bdt['event_weight']]
 
-    # bkg_pt_list = [combined_bkg_1p3p['ditau_pt']/1e6, combined_bkg_1p3p_bdt['ditau_pt']/1e6, combined_bkg_1p1p['ditau_pt']/1e6, combined_bkg_1p1p_bdt['ditau_pt']/1e6, combined_bkg_3p3p['ditau_pt']/1e6, combined_bkg_3p3p_bdt['ditau_pt']/1e6, combined_bkg_inc['ditau_pt']/1e6, combined_bkg_inc_bdt['ditau_pt']/1e6]
-    # bkg_eta_list = [combined_bkg_1p3p['eta'], combined_bkg_1p3p_bdt['eta'], combined_bkg_1p1p['eta'], combined_bkg_1p1p_bdt['eta'], combined_bkg_3p3p['eta'], combined_bkg_3p3p_bdt['eta'], combined_bkg_inc['eta'], combined_bkg_inc_bdt['eta']]
-    # bkg_mu_list = [combined_bkg_1p3p['average_mu'], combined_bkg_1p3p_bdt['average_mu'], combined_bkg_1p1p['average_mu'], combined_bkg_1p1p_bdt['average_mu'], combined_bkg_3p3p['average_mu'], combined_bkg_3p3p_bdt['average_mu'], combined_bkg_inc['average_mu'], combined_bkg_inc_bdt['average_mu']]
-    # bkg_w_list = [combined_bkg_1p3p['event_weight'], combined_bkg_1p3p_bdt['event_weight'], combined_bkg_1p1p['event_weight'], combined_bkg_1p1p_bdt['event_weight'], combined_bkg_3p3p['event_weight'], combined_bkg_3p3p_bdt['event_weight'], combined_bkg_inc['event_weight'], combined_bkg_inc_bdt['event_weight']]
-    
     bkg_pt_list = [combined_bkg_1p3p_bdt['ditau_pt']/1e6, combined_bkg_1p3p['ditau_pt']/1e6, combined_bkg_1p1p_bdt['ditau_pt']/1e6, combined_bkg_1p1p['ditau_pt']/1e6, combined_bkg_3p3p_bdt['ditau_pt']/1e6, combined_bkg_3p3p['ditau_pt']/1e6, combined_bkg_inc_bdt['ditau_pt']/1e6, combined_bkg_inc['ditau_pt']/1e6]
+    #bkg_pt_list = [combined_bkg_1p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p3p['sublead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p1p['sublead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_3p3p['sublead_subjet_pt']/1e6, combined_bkg_inc_bdt['sublead_subjet_pt']/1e6, combined_bkg_inc['sublead_subjet_pt']/1e6]
+    #bkg_pt_list = [combined_bkg_1p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p3p['lead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p1p['lead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_3p3p['lead_subjet_pt']/1e6, combined_bkg_inc_bdt['lead_subjet_pt']/1e6, combined_bkg_inc['lead_subjet_pt']/1e6]
     bkg_eta_list = [combined_bkg_1p3p_bdt['eta'], combined_bkg_1p3p['eta'], combined_bkg_1p1p_bdt['eta'], combined_bkg_1p1p['eta'], combined_bkg_3p3p_bdt['eta'], combined_bkg_3p3p['eta'], combined_bkg_inc_bdt['eta'], combined_bkg_inc['eta']]
     bkg_mu_list = [combined_bkg_1p3p_bdt['average_mu'], combined_bkg_1p3p['average_mu'], combined_bkg_1p1p_bdt['average_mu'], combined_bkg_1p1p['average_mu'], combined_bkg_3p3p_bdt['average_mu'], combined_bkg_3p3p['average_mu'], combined_bkg_inc_bdt['average_mu'], combined_bkg_inc['average_mu']]
     bkg_w_list = [combined_bkg_1p3p_bdt['event_weight'], combined_bkg_1p3p['event_weight'], combined_bkg_1p1p_bdt['event_weight'], combined_bkg_1p1p['event_weight'], combined_bkg_3p3p_bdt['event_weight'], combined_bkg_3p3p['event_weight'], combined_bkg_inc_bdt['event_weight'], combined_bkg_inc['event_weight']]
 
-
-    pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "P_{T} [TeV]", 20, 0.2, 1., eta=False, bkg=True)
+    pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "DiJet P_{T} [TeV]", 20, 0.2, 1., eta=False, bkg=True)
+    # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "Leading Subjet P_{T} [TeV]", 20, 0., 1.0, eta=False, bkg=True)
     pt_1p3p_eff_w.SetMarkerStyle(20)
     pt_1p1p_eff_w.SetMarkerStyle(20)
     pt_3p3p_eff_w.SetMarkerStyle(20)
@@ -294,6 +302,9 @@ def plotter():
     tex.SetNDC()
     tex.SetTextSize(0.035)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    tex.DrawLatex(0.2+0.02,0.85, "DiJet Samples")
+    pt_1p3p_eff_w.GetXaxis().SetLabelOffset(0.03)
+    pt_1p3p_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -326,6 +337,9 @@ def plotter():
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    tex.DrawLatex(0.2+0.02,0.85, "DiJet Samples")
+    eta_1p3p_eff_w.GetXaxis().SetLabelOffset(0.03)
+    eta_1p3p_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -343,6 +357,9 @@ def plotter():
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    tex.DrawLatex(0.2+0.02,0.85, "DiJet Samples")
+    eta_inc_eff_w.GetXaxis().SetLabelOffset(0.03)
+    eta_inc_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -376,6 +393,9 @@ def plotter():
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    tex.DrawLatex(0.2+0.02,0.85, "DiJet Samples")
+    mu_1p3p_eff_w.GetXaxis().SetLabelOffset(0.03)
+    mu_1p3p_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -393,6 +413,9 @@ def plotter():
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    tex.DrawLatex(0.2+0.02,0.85, "DiJet Samples")
+    mu_inc_eff_w.GetXaxis().SetLabelOffset(0.03)
+    mu_inc_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -429,6 +452,9 @@ def plotter():
     # tex.SetTextSize(0.04)
     # tex.DrawLatex(0.2+0.02,0.25, "#bf{#it{ATLAS}} Internal")
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    # tex.DrawLatex(0.2+0.02,0.85, "DiJet Samples")
+    pt_sig_1p3p_eff_w.GetXaxis().SetLabelOffset(0.03)
+    pt_sig_1p3p_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -461,6 +487,8 @@ def plotter():
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    eta_sig_1p3p_eff_w.GetXaxis().SetLabelOffset(0.03)
+    eta_sig_1p3p_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
@@ -494,6 +522,8 @@ def plotter():
     # tex.SetNDC()
     # tex.SetTextSize(0.04)
     tex.DrawLatex(0.2+0.02,0.88, "#bf{#it{ATLAS}} Internal")
+    mu_sig_1p3p_eff_w.GetXaxis().SetLabelOffset(0.03)
+    mu_sig_1p3p_eff_w.GetYaxis().SetLabelOffset(0.03)
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
