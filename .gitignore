@@ -1,5 +1,9 @@
 #local python cache 
 __pycache__
 .ipynb_checkpoints
-
+*.pth
+*.onnx
+analysis/ffs/
+run/training_var_plots/
+analysis/wandb/
 *~

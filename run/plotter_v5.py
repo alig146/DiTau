@@ -12,14 +12,13 @@ import pandas as pd
 
 def plotter():
     path = "/global/u2/a/agarabag/pscratch/ditdau_samples/"
-    # combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
-    # combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
+    combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
+    combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
     ####nominal
-    # combined_bkg = pd.read_csv(path+'inc_bdt_bkg.csv')
-    # combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
+ 
     ####
-    combined_bkg = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/inc_bdt_bkg.csv')
-    combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
+    # combined_bkg = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/combined_jz_ntuple_inc_no_pt_cut.csv')
+    # combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
     # combined_signal = pd.read_csv(path+'inc_bdt_vhtautau.csv')
 
     class DataFrameCuts:
@@ -79,6 +78,12 @@ def plotter():
     combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
     combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
     combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
+
+    ##for fake factors##
+    # combined_bkg_bdt = combined_bkg[(combined_bkg['bdt_score_new'] < 0.73)]
+    # combined_bkg = combined_bkg[(combined_bkg['bdt_score_new'] >= 0.73)]
+    # combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
+    # combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
     ############################
     # combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
     # combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
@@ -129,10 +134,7 @@ def plotter():
     combined_signal_1p1p_bdt = combined_bdt['signal']['1p1p']
     combined_signal_3p3p_bdt = combined_bdt['signal']['3p3p']
     combined_signal_inc_bdt = combined_bdt['signal']['inc']
-
-    # print("TTTTT: ", combined_signal_inc_bdt)
     
-
     # use non trained data
     combined_bkg_1p3p = combined_bkg_1p3p[(combined_bkg_1p3p['event_id']%10) >= 7] # 30% of data
     combined_bkg_1p3p_bdt = combined_bkg_1p3p_bdt[(combined_bkg_1p3p_bdt['event_id']%10) >= 7] # 30% of data
@@ -163,12 +165,13 @@ def plotter():
         plt.plot(tpr, 1/fpr, color=color[i], linewidth=1, alpha=0.7, label=f'{channel[i]}')
 
     for i in range(4):
-        fpr, tpr = calc_roc(combined['signal'][channel[i]]['inc_new_bdt'], combined['bkg'][channel[i]]['inc_new_bdt'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
+        # fpr, tpr = calc_roc(combined['signal'][channel[i]]['inc_new_bdt'], combined['bkg'][channel[i]]['inc_new_bdt'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
+        fpr, tpr = calc_roc(combined['signal'][channel[i]]['bdt_score_new'], combined['bkg'][channel[i]]['bdt_score_new'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
         roc_auc = auc(fpr, tpr)
         plt.plot(tpr, 1/fpr, color=color[i], linestyle='dashed', label=f'{channel[i]} new')
 
     plt.xlabel("Signal Efficiency", fontsize=12)
-    plt.ylabel("Inverse Background Efficiency", fontsize=12)
+    plt.ylabel("Background Rejection", fontsize=12)
     plt.yscale('log')
     plt.legend()
     plt.legend(prop={'size': 10})
@@ -182,9 +185,9 @@ def plotter():
     ####### plot the score distribution
     fig_score = plt.figure()
     plt.hist(combined_bkg_1p3p['bdt_score'], bins=60, histtype="step", label="1p3p bkg", color='black', weights=combined_bkg_1p3p['weight'])
-    plt.hist(combined_bkg_1p3p['inc_new_bdt'], bins=60, histtype="step", label="1p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p3p['weight'])
+    plt.hist(combined_bkg_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p3p['weight'])
     plt.hist(combined_signal_1p3p['bdt_score'], bins=60, histtype="step", label="1p3p sig", color='red', weights=combined_signal_1p3p['weight'])
-    plt.hist(combined_signal_1p3p['inc_new_bdt'], bins=60, histtype="step", label="1p3p sig new", linestyle='dashed', color='red', weights=combined_signal_1p3p['weight'])
+    plt.hist(combined_signal_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p sig new", linestyle='dashed', color='red', weights=combined_signal_1p3p['weight'])
     plt.xlabel("BDT score")
     plt.ylabel("Counts")
     plt.yscale('log')
@@ -194,9 +197,9 @@ def plotter():
 
     fig_score2 = plt.figure()
     plt.hist(combined_bkg_1p1p['bdt_score'], bins=60, histtype="step", label="1p1p bkg", color='black', weights=combined_bkg_1p1p['weight'])
-    plt.hist(combined_bkg_1p1p['inc_new_bdt'], bins=60, histtype="step", label="1p1p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p1p['weight'])
+    plt.hist(combined_bkg_1p1p['bdt_score_new'], bins=60, histtype="step", label="1p1p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p1p['weight'])
     plt.hist(combined_signal_1p1p['bdt_score'], bins=60, histtype="step", label="1p1p sig", color='red', weights=combined_signal_1p1p['weight'])
-    plt.hist(combined_signal_1p1p['inc_new_bdt'], bins=60, histtype="step", label="1p1p sig new", linestyle='dashed', color='red', weights=combined_signal_1p1p['weight'])
+    plt.hist(combined_signal_1p1p['bdt_score_new'], bins=60, histtype="step", label="1p1p sig new", linestyle='dashed', color='red', weights=combined_signal_1p1p['weight'])
     plt.xlabel("BDT score")
     plt.ylabel("Counts")
     plt.yscale('log')
@@ -206,9 +209,9 @@ def plotter():
 
     fig_score3 = plt.figure()
     plt.hist(combined_bkg_3p3p['bdt_score'], bins=60, histtype="step", label="3p3p bkg", color='black', weights=combined_bkg_3p3p['weight'])
-    plt.hist(combined_bkg_3p3p['inc_new_bdt'], bins=60, histtype="step", label="3p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_3p3p['weight'])
+    plt.hist(combined_bkg_3p3p['bdt_score_new'], bins=60, histtype="step", label="3p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_3p3p['weight'])
     plt.hist(combined_signal_3p3p['bdt_score'], bins=60, histtype="step", label="3p3p sig", color='red', weights=combined_signal_3p3p['weight'])
-    plt.hist(combined_signal_3p3p['inc_new_bdt'], bins=60, histtype="step", label="3p3p sig new", linestyle='dashed', color='red', weights=combined_signal_3p3p['weight'])
+    plt.hist(combined_signal_3p3p['bdt_score_new'], bins=60, histtype="step", label="3p3p sig new", linestyle='dashed', color='red', weights=combined_signal_3p3p['weight'])
     plt.xlabel("BDT score")
     plt.ylabel("Counts")
     plt.yscale('log')
@@ -218,9 +221,9 @@ def plotter():
 
     fig_score4 = plt.figure()
     plt.hist(combined_bkg_inc['bdt_score'], bins=60, histtype="step", label="inc bkg", color='black', weights=combined_bkg_inc['weight'])
-    plt.hist(combined_bkg_inc['inc_new_bdt'], bins=60, histtype="step", label="inc bkg new", linestyle='dashed', color='black', weights=combined_bkg_inc['weight'])
+    plt.hist(combined_bkg_inc['bdt_score_new'], bins=60, histtype="step", label="inc bkg new", linestyle='dashed', color='black', weights=combined_bkg_inc['weight'])
     plt.hist(combined_signal_inc['bdt_score'], bins=60, histtype="step", label="inc sig", color='red', weights=combined_signal_inc['weight'])
-    plt.hist(combined_signal_inc['inc_new_bdt'], bins=60, histtype="step", label="inc sig new", linestyle='dashed', color='red', weights=combined_signal_inc['weight'])
+    plt.hist(combined_signal_inc['bdt_score_new'], bins=60, histtype="step", label="inc sig new", linestyle='dashed', color='red', weights=combined_signal_inc['weight'])
     plt.xlabel("BDT score")
     plt.ylabel("Counts")
     plt.yscale('log')
@@ -263,14 +266,16 @@ def plotter():
     sig_w_list = [combined_signal_1p3p['event_weight'], combined_signal_1p3p_bdt['event_weight'], combined_signal_1p1p['event_weight'], combined_signal_1p1p_bdt['event_weight'], combined_signal_3p3p['event_weight'], combined_signal_3p3p_bdt['event_weight'], combined_signal_inc['event_weight'], combined_signal_inc_bdt['event_weight']]
 
     bkg_pt_list = [combined_bkg_1p3p_bdt['ditau_pt']/1e6, combined_bkg_1p3p['ditau_pt']/1e6, combined_bkg_1p1p_bdt['ditau_pt']/1e6, combined_bkg_1p1p['ditau_pt']/1e6, combined_bkg_3p3p_bdt['ditau_pt']/1e6, combined_bkg_3p3p['ditau_pt']/1e6, combined_bkg_inc_bdt['ditau_pt']/1e6, combined_bkg_inc['ditau_pt']/1e6]
-    #bkg_pt_list = [combined_bkg_1p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p3p['sublead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p1p['sublead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_3p3p['sublead_subjet_pt']/1e6, combined_bkg_inc_bdt['sublead_subjet_pt']/1e6, combined_bkg_inc['sublead_subjet_pt']/1e6]
-    #bkg_pt_list = [combined_bkg_1p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p3p['lead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p1p['lead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_3p3p['lead_subjet_pt']/1e6, combined_bkg_inc_bdt['lead_subjet_pt']/1e6, combined_bkg_inc['lead_subjet_pt']/1e6]
+    # bkg_pt_list = [combined_bkg_1p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p3p['sublead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p1p['sublead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_3p3p['sublead_subjet_pt']/1e6, combined_bkg_inc_bdt['sublead_subjet_pt']/1e6, combined_bkg_inc['sublead_subjet_pt']/1e6]
+    # bkg_pt_list = [combined_bkg_1p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p3p['lead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p1p['lead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_3p3p['lead_subjet_pt']/1e6, combined_bkg_inc_bdt['lead_subjet_pt']/1e6, combined_bkg_inc['lead_subjet_pt']/1e6]
     bkg_eta_list = [combined_bkg_1p3p_bdt['eta'], combined_bkg_1p3p['eta'], combined_bkg_1p1p_bdt['eta'], combined_bkg_1p1p['eta'], combined_bkg_3p3p_bdt['eta'], combined_bkg_3p3p['eta'], combined_bkg_inc_bdt['eta'], combined_bkg_inc['eta']]
     bkg_mu_list = [combined_bkg_1p3p_bdt['average_mu'], combined_bkg_1p3p['average_mu'], combined_bkg_1p1p_bdt['average_mu'], combined_bkg_1p1p['average_mu'], combined_bkg_3p3p_bdt['average_mu'], combined_bkg_3p3p['average_mu'], combined_bkg_inc_bdt['average_mu'], combined_bkg_inc['average_mu']]
     bkg_w_list = [combined_bkg_1p3p_bdt['event_weight'], combined_bkg_1p3p['event_weight'], combined_bkg_1p1p_bdt['event_weight'], combined_bkg_1p1p['event_weight'], combined_bkg_3p3p_bdt['event_weight'], combined_bkg_3p3p['event_weight'], combined_bkg_inc_bdt['event_weight'], combined_bkg_inc['event_weight']]
 
     pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "DiJet P_{T} [TeV]", 20, 0.2, 1., eta=False, bkg=True)
-    # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "Leading Subjet P_{T} [TeV]", 20, 0., 1.0, eta=False, bkg=True)
+    # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "Leading Subjet P_{T} [TeV]", 20, 0., 0.5, eta=False, bkg=True)
+    # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "SubLeading Subjet P_{T} [TeV]", 20, 0., 0.5, eta=False, bkg=True)
+
     pt_1p3p_eff_w.SetMarkerStyle(20)
     pt_1p1p_eff_w.SetMarkerStyle(20)
     pt_3p3p_eff_w.SetMarkerStyle(20)
@@ -527,7 +532,8 @@ def plotter():
     canvas.Print("eff_plots.pdf")
     canvas.Clear()
 
-    bk_pt_plt = plt_to_root_hist_w(combined_signal_1p3p['ditau_pt'], 100, 200000, 1000000, combined_signal_1p3p['event_weight'], False)
+    bk_pt_plt = plt_to_root_hist_w(combined_bkg_inc['ditau_pt'], 50, 200000, 1000000, combined_bkg_inc['event_weight'], False)
+    # bk_pt_plt = plt_to_root_hist_w(combined_bkg_inc['lead_subjet_pt']/1e6, 20, 0, 0.5, None, False)
     bk_pt_plt.SetMarkerStyle(20)
     bk_pt_plt.SetMarkerSize(0.1)
     bk_pt_plt.Draw("hist e")

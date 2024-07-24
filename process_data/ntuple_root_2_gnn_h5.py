@@ -67,8 +67,8 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
                 get_first(events['ditau_ditau_pt']),
                 get_first(events['ditau_eta']),
                 get_first(events['ditau_phi']),
-                get_first(events['ditau_n_tracks_lead']),
-                get_first(events['ditau_n_tracks_subl']),
+                # get_first(events['ditau_n_tracks_lead']),
+                # get_first(events['ditau_n_tracks_subl']),
                 get_first(events['ditau_R_max_lead']),
                 get_first(events['ditau_R_max_subl']),
                 get_first(events['ditau_R_tracks_subl']),
@@ -94,9 +94,15 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
 
         ## save track features
         track_features = [
-            events['trackEta'], events['trackPhi'], events['trackPt'], events['d0TJVA'], events['z0TJVA'],
-            events['numberOfInnermostPixelLayerHits'], events['numberOfPixelHits'], 
-            events['numberOfSCTHits'], events['charge']
+            events['trackEta'], 
+            events['trackPhi'], 
+            events['trackPt'], 
+            events['d0TJVA'],
+            events['z0TJVA'],
+            events['numberOfInnermostPixelLayerHits'], 
+            events['numberOfPixelHits'], 
+            events['numberOfSCTHits'], 
+            events['charge']
         ]
 
         num_track_features = len(track_features)
@@ -128,20 +134,36 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
         phi_difference = np.where(phi_difference <= -np.pi, phi_difference + 2*np.pi, phi_difference)
         padded_tracks[:, :, 1] = phi_difference
 
-        #calculate the ratio between track pt and jet pt
+        # #calculate the ratio between track pt and jet pt
+        # jet_pt = padded_jets[:, 0]
+        # jet_pt = jet_pt[:, np.newaxis, np.newaxis]
+        # jet_pt = np.repeat(jet_pt, MAX_TRACKS, axis=1)
+        # jet_pt = np.repeat(jet_pt, num_track_features, axis=2)
+        # mask = padded_tracks[:, :, 2] != 0
+        # pt_ratio = np.where(mask, padded_tracks[:, :, 2] / jet_pt[:, :, 0], 0)
+        # pt_ratio_subtracted = np.where(mask, 1 - pt_ratio + 1e-8, 0)
+        # pt_ratio_log = np.log(np.where(pt_ratio_subtracted != 0, pt_ratio_subtracted, 1))
+        # print("JJJJ: ", padded_jets[3, 0])
+        # print("TTT: ", padded_tracks[3, :, 2])
+        # print("RRR: ", pt_ratio_log[3, :])
+        # # padded_tracks = np.concatenate((padded_tracks, pt_ratio[:, :, np.newaxis]), axis=2)
+        # padded_tracks = np.insert(padded_tracks, 3, pt_ratio_log, axis=2)
+
+        epsilon = 1e-8
         jet_pt = padded_jets[:, 0]
         jet_pt = jet_pt[:, np.newaxis, np.newaxis]
         jet_pt = np.repeat(jet_pt, MAX_TRACKS, axis=1)
         jet_pt = np.repeat(jet_pt, num_track_features, axis=2)
+        jet_pt = np.maximum(jet_pt, epsilon)
         mask = padded_tracks[:, :, 2] != 0
         pt_ratio = np.where(mask, padded_tracks[:, :, 2] / jet_pt[:, :, 0], 0)
-        pt_ratio_subtracted = np.where(mask, 1 - pt_ratio + 1e-8, 0)
-        pt_ratio_log = np.log(np.where(pt_ratio_subtracted != 0, pt_ratio_subtracted, 1))
-        # print("JJJJ: ", padded_jets[3, 0])
-        # print("TTT: ", padded_tracks[3, :, 2])
-        # print("RRR: ", pt_ratio_log[3, :])
-        # padded_tracks = np.concatenate((padded_tracks, pt_ratio[:, :, np.newaxis]), axis=2)
-        padded_tracks = np.insert(padded_tracks, 3, pt_ratio_log, axis=2)
+        pt_ratio = np.nan_to_num(pt_ratio, nan=0.0, posinf=1.0, neginf=0.0)
+        pt_ratio_subtracted = np.where(mask, 1 - pt_ratio + epsilon, epsilon)
+        pt_ratio_subtracted = np.maximum(pt_ratio_subtracted, epsilon)
+        pt_ratio_log = np.log(pt_ratio_subtracted)
+        pt_ratio_log = np.nan_to_num(pt_ratio_log, nan=0.0, posinf=0.0, neginf=0.0)
+        padded_tracks = np.insert(padded_tracks, 4, pt_ratio_log, axis=2)
+        assert not np.isnan(padded_tracks).any(), "NaN values found in padded_tracks"
 
         #calculate deta_R
         deta = padded_tracks[:, :, 0]
@@ -150,7 +172,7 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
         padded_tracks = np.insert(padded_tracks, 6, dR, axis=2)
 
         #take the log of the track pt 
-        padded_tracks[:, :, 2] = np.log(padded_tracks[:, :, 2] + 1e-8)
+        padded_tracks[:, :, 2] = np.ma.log(padded_tracks[:, :, 2])
 
         print("track shape: ", padded_tracks.shape)
         print("jet shape: ", padded_jets.shape)
@@ -176,17 +198,17 @@ test_jet, val_jet, test_track, val_track, test_pid, val_pid = train_test_split(
 # Write to H5 files
 output_dir = '/global/homes/a/agarabag/pscratch/ditdau_samples/'
 
-with h5py.File(os.path.join(output_dir, 'train_tau.h5'), 'w') as train_file:
+with h5py.File(os.path.join(output_dir, 'train_tau_w_cuts.h5'), 'w') as train_file:
     train_file.create_dataset('data', data=train_track)
     train_file.create_dataset('jet', data=train_jet)
     train_file.create_dataset('pid', data=train_pid)
 
-with h5py.File(os.path.join(output_dir, 'test_tau.h5'), 'w') as test_file:
+with h5py.File(os.path.join(output_dir, 'test_tau_w_cuts.h5'), 'w') as test_file:
     test_file.create_dataset('data', data=test_track)
     test_file.create_dataset('jet', data=test_jet)
     test_file.create_dataset('pid', data=test_pid)
 
-with h5py.File(os.path.join(output_dir, 'val_tau.h5'), 'w') as val_file:
+with h5py.File(os.path.join(output_dir, 'val_tau_w_cuts.h5'), 'w') as val_file:
     val_file.create_dataset('data', data=val_track)
     val_file.create_dataset('jet', data=val_jet)
     val_file.create_dataset('pid', data=val_pid)

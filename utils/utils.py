@@ -1,4 +1,4 @@
-import glob, os, sys, json, time, tempfile
+import glob, os, sys, json, time, tempfile, math
 import uproot, ROOT
 import random
 import matplotlib.pyplot as plt
@@ -239,6 +239,10 @@ def plt_to_root_hist_w(data, num_bins, x_min, x_max, weights=None, eta=False):
     #create root histogram
     if eta == False:
         root_hist = ROOT.TH1D("root_hist", "ROOT Histogram", num_bins, x_min, x_max)
+        #####for Fake Factors#####
+        # bin_array = array('d',[0, 0.05, .1, .15, .7]) # sublead subjet
+        # bin_array = array('d',[0, .1, .2, .3, .4, .5, .7]) #lead subjet
+        # root_hist = ROOT.TH1D("root_hist", "ROOT Histogram", len(bin_array)-1, bin_array)
     else:
         bin_array = array('d',[-2.5, -2.2, -1.9, -1.6, -1.3, -1.1, -0.9, -0.7, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1.1, 1.3, 1.6, 1.9, 2.2, 2.5])
         root_hist = ROOT.TH1D("root_hist", "ROOT Histogram", len(bin_array)-1, bin_array)
@@ -354,6 +358,24 @@ def flattened_pt_weighted(data, bins, weight):
 
 #     return pt_1p3p_eff, pt_1p1p_eff, pt_3p3p_eff, pt_inc_eff
 
+def overflowIntoLastBins( hist, low=True, high=True, copy=False ):
+    if copy:
+        # generate a copy with a unique name
+        hist = hist.Clone( appendUUID( hist.GetName() ) )
+    nBins = hist.GetNbinsX()
+    bins = []
+    if low:
+        bins.append( (0,1) )
+    if high:
+        bins.append( (nBins+1, nBins) )
+    for fromBin, toBin in bins:
+        hist.SetBinContent( toBin, hist.GetBinContent(fromBin) + hist.GetBinContent(toBin) )
+        hist.SetBinError( toBin, math.sqrt(hist.GetBinError(fromBin)**2 + hist.GetBinError(toBin)**2) )
+        hist.SetBinContent( fromBin, 0. )
+        hist.SetBinError( fromBin, 0. )
+    return hist
+
+
 def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
     
     pt_1p3p_dnom = plt_to_root_hist_w(data[0], num_bins, x_min, x_max, weights[0], eta)
@@ -369,6 +391,16 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
     pt_1p1p_eff = make_eff_hist(pt_1p1p_num, pt_1p1p_dnom, "1p1p_eff")
     pt_3p3p_eff = make_eff_hist(pt_3p3p_num, pt_3p3p_dnom, "3p3p_eff")
     pt_inc_eff = make_eff_hist(pt_inc_num, pt_inc_dnom, "inc_eff")
+
+
+    # pt_1p3p_eff = overflowIntoLastBins(pt_1p3p_eff, low=False, high=True, copy=False)
+    # pt_1p3p_eff = overflowIntoLastBins(pt_1p3p_eff, low=True, high=False, copy=False)
+    # pt_1p1p_eff = overflowIntoLastBins(pt_1p1p_eff, low=False, high=True, copy=False)
+    # pt_1p1p_eff = overflowIntoLastBins(pt_1p1p_eff, low=True, high=False, copy=False)
+    # pt_3p3p_eff = overflowIntoLastBins(pt_3p3p_eff, low=False, high=True, copy=False)
+    # pt_3p3p_eff = overflowIntoLastBins(pt_3p3p_eff, low=True, high=False, copy=False)
+    # pt_inc_eff = overflowIntoLastBins(pt_inc_eff, low=False, high=True, copy=False)
+    # pt_inc_eff = overflowIntoLastBins(pt_inc_eff, low=True, high=False, copy=False)
 
     if bkg:
         pt_1p3p_eff.GetYaxis().SetRangeUser(0, 10)
@@ -396,6 +428,10 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
         pt_1p1p_eff.GetYaxis().SetTitle('Background Rejection')
         pt_3p3p_eff.GetYaxis().SetTitle('Background Rejection')
         pt_inc_eff.GetYaxis().SetTitle('Background Rejection')
+        # pt_1p3p_eff.GetYaxis().SetTitle('Fake Factor')
+        # pt_1p1p_eff.GetYaxis().SetTitle('Fake Factor')
+        # pt_3p3p_eff.GetYaxis().SetTitle('Fake Factor')
+        # pt_inc_eff.GetYaxis().SetTitle('Fake Factor')
     else:
         pt_1p3p_eff.GetYaxis().SetTitle('Signal Efficiency')
         pt_1p1p_eff.GetYaxis().SetTitle('Signal Efficiency')
@@ -488,9 +524,7 @@ def significance_bin_by_bin(signal, bkg, s_much_less_than_b=True):
         if b <= 0:
             continue
         _sig = bin_significance_counting(s, b, s_much_less_than_b=s_much_less_than_b)
-        print(
-            'bin {}, signal = {}, background = {}, significance = {}'.format(
-            iBin, s, b, _sig))
+        # print('bin {}, signal = {}, background = {}, significance = {}'.format(iBin, s, b, _sig))
         tot_signifiance += _sig * _sig
 
     return np.sqrt(tot_signifiance)

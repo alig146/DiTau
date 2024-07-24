@@ -21,7 +21,7 @@ def get_single_booster_cpp_code(booster_tree, branch_id, class_index, indentatio
     feature_index = re.search('f(\d+)', level[0]).group(1)
     comparison = re.search('[^0-9a-zA-Z:[]+[0-9]*[0-9.]*', level[0]).group(0)
     
-    booster_code += "{0}if (sample[{1}] {2}) {{\n".format("  " * indentation_level, feature_index, comparison)
+    booster_code += "{0}if (sample.at({1}) {2}) {{\n".format("  " * indentation_level, feature_index, comparison)
     booster_code += get_single_booster_cpp_code(booster_tree, yes_branch_id, class_index, indentation_level + 1)
     booster_code += "{0}}} else {{\n".format("  " * indentation_level)
     booster_code += get_single_booster_cpp_code(booster_tree, no_branch_id, class_index, indentation_level + 1)
