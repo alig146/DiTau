@@ -244,7 +244,9 @@ def plt_to_root_hist_w(data, num_bins, x_min, x_max, weights=None, eta=False):
         # bin_array = array('d',[0, .1, .2, .3, .4, .5, .7]) #lead subjet
         # root_hist = ROOT.TH1D("root_hist", "ROOT Histogram", len(bin_array)-1, bin_array)
     else:
-        bin_array = array('d',[-2.5, -2.2, -1.9, -1.6, -1.3, -1.1, -0.9, -0.7, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1.1, 1.3, 1.6, 1.9, 2.2, 2.5])
+        # bin_array = array('d',[-2.5, -2.2, -1.9, -1.6, -1.3, -1.1, -0.9, -0.7, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1.1, 1.3, 1.6, 1.9, 2.2, 2.5])
+        bin_array = array('d',[-2.5, -1.9, -1.6, -1.1, -0.7, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.7, 1.1, 1.6, 1.9, 2.5])
+
         root_hist = ROOT.TH1D("root_hist", "ROOT Histogram", len(bin_array)-1, bin_array)
     root_hist.Sumw2()
     #fill root histogram
@@ -256,11 +258,6 @@ def plt_to_root_hist_w(data, num_bins, x_min, x_max, weights=None, eta=False):
     return root_hist
 
 def calc_roc(signal_scores, background_scores, signal_weights=None, background_weights=None):
-    # filter scores above 0.4
-    # signal_scores = signal_scores[signal_scores > 0.45]
-    # background_scores = background_scores[background_scores > 0.45]
-    # signal_weights = signal_weights[signal_scores > 0.45]
-    # background_weights = background_weights[background_scores > 0.45]
     signal_labels = np.ones(len(signal_scores))
     background_labels = np.zeros(len(background_scores))
 
@@ -278,18 +275,19 @@ def calc_roc(signal_scores, background_scores, signal_weights=None, background_w
 
     fpr_cut = fpr[(tpr>0.05) & (fpr>0)] 
     tpr_cut = tpr[(tpr>0.05) & (fpr>0)]
-    return fpr_cut, tpr_cut
+    thresholds = thresholds[(tpr>0.05) & (fpr>0)]
+    return fpr_cut, tpr_cut, thresholds
 
-# def flattened_pt_weighted(data, bins):
-#     weights = np.zeros(len(ak.flatten(data))) 
-#     pt_hist, bin_edges = np.histogram(ak.flatten(data), bins=bins)
-#     for i in range(len(pt_hist)):
-#         if pt_hist[i] == 0:
-#             weights = np.where((ak.flatten(data) >= bin_edges[i]) & (ak.flatten(data) < bin_edges[i+1]), 1, weights)
-#         else:
-#             weights = np.where((ak.flatten(data) >= bin_edges[i]) & (ak.flatten(data) < bin_edges[i+1]), 1/pt_hist[i], weights)
+def flattened_pt(data, bins):
+    weights = np.zeros(len(data)) 
+    pt_hist, bin_edges = np.histogram(data, bins=bins)
+    for i in range(len(pt_hist)):
+        if pt_hist[i] == 0:
+            weights = np.where((data >= bin_edges[i]) & (data < bin_edges[i+1]), 1, weights)
+        else:
+            weights = np.where((data >= bin_edges[i]) & (data < bin_edges[i+1]), 1/pt_hist[i], weights)
 
-#     return weights
+    return weights
 
 def flattened_pt_weighted(data, bins, weight):
     weights = np.zeros(len(data))
@@ -392,7 +390,6 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
     pt_3p3p_eff = make_eff_hist(pt_3p3p_num, pt_3p3p_dnom, "3p3p_eff")
     pt_inc_eff = make_eff_hist(pt_inc_num, pt_inc_dnom, "inc_eff")
 
-
     # pt_1p3p_eff = overflowIntoLastBins(pt_1p3p_eff, low=False, high=True, copy=False)
     # pt_1p3p_eff = overflowIntoLastBins(pt_1p3p_eff, low=True, high=False, copy=False)
     # pt_1p1p_eff = overflowIntoLastBins(pt_1p1p_eff, low=False, high=True, copy=False)
@@ -403,10 +400,10 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
     # pt_inc_eff = overflowIntoLastBins(pt_inc_eff, low=True, high=False, copy=False)
 
     if bkg:
-        pt_1p3p_eff.GetYaxis().SetRangeUser(0, 10)
-        pt_1p1p_eff.GetYaxis().SetRangeUser(0, 10)
-        pt_3p3p_eff.GetYaxis().SetRangeUser(0, 10)
-        pt_inc_eff.GetYaxis().SetRangeUser(0, 10)
+        pt_1p3p_eff.GetYaxis().SetRangeUser(0, 1)
+        pt_1p1p_eff.GetYaxis().SetRangeUser(0, 1)
+        pt_3p3p_eff.GetYaxis().SetRangeUser(0, 1)
+        pt_inc_eff.GetYaxis().SetRangeUser(0, 1)
     else:
         pt_1p3p_eff.GetYaxis().SetRangeUser(0.25, 1.3)
         pt_1p1p_eff.GetYaxis().SetRangeUser(0.25, 1.3)
@@ -438,10 +435,10 @@ def plot_eff(data, weights, name, num_bins, x_min, x_max, eta=False, bkg=False):
         pt_3p3p_eff.GetYaxis().SetTitle('Signal Efficiency')
         pt_inc_eff.GetYaxis().SetTitle('Signal Efficiency')
 
-    pt_1p3p_eff.SetLineColor(ROOT.kBlue+1)
-    pt_1p1p_eff.SetLineColor(ROOT.kOrange+8)
-    pt_3p3p_eff.SetLineColor(ROOT.kAzure+8)
-    pt_inc_eff.SetLineColor(ROOT.kSpring-5)
+    # pt_1p3p_eff.SetLineColor(ROOT.kBlue+1)
+    # pt_1p1p_eff.SetLineColor(ROOT.kOrange+8)
+    # pt_3p3p_eff.SetLineColor(ROOT.kAzure+8)
+    # pt_inc_eff.SetLineColor(ROOT.kSpring-5)
 
     return pt_1p3p_eff, pt_1p1p_eff, pt_3p3p_eff, pt_inc_eff
 

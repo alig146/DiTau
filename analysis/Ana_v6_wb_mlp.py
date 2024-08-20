@@ -238,7 +238,7 @@ def Cut(t):
     cut = ak.where((t['ditau_obj_nSubjets'] >= 2) &
                    (t['n_bjets_DL1dv01_FixedCutBEff_70'] == 0) & #b veto
                    (t['ditau_obj_IsTruthMatched']==1) &
-                   (t['ditau_obj_bdt_score'] >= 0.73) &
+                #    (t['ditau_obj_bdt_score'] >= 0.73) &
                    (t['event_is_bad_batman'] == 0) &
                    (t['HLT_j420'] | t['HLT_j420_a10t_lcw_jes_35smcINF_L1J100'] | t['HLT_j420_a10t_lcw_jes_35smcINF_L1SC111']) &
                    (t['ditau_obj_leadsubjet_charge'] * t['ditau_obj_subleadsubjet_charge'] == -1) & ### last 2 cuts are in ntuples now
@@ -250,7 +250,7 @@ def Cut(t):
 def data_Cut(t):
     cut = ak.where((t['ditau_obj_nSubjets'] >= 2) &
                    (t['n_bjets_DL1dv01_FixedCutBEff_70'] == 0) &
-                   (t['ditau_obj_bdt_score'] < 0.73) &
+                #    (t['ditau_obj_bdt_score'] < 0.73) &
                    (t['event_is_bad_batman'] == 0) &
                    (t['HLT_j420'] | t['HLT_j420_a10t_lcw_jes_35smcINF_L1J100'] | t['HLT_j420_a10t_lcw_jes_35smcINF_L1SC111']) &
                    (t['ditau_obj_leadsubjet_charge'] * t['ditau_obj_subleadsubjet_charge'] == -1) &
@@ -366,7 +366,22 @@ def fake_factor_calc(leadNTracks, subleadNTracks, lead_pt, sublead_pt, histogram
     
     return [w * ff_scale for w in weights]
 
-
+def met_centrality(lead_jet_phi, sublead_jet_phi, met_phi):
+    # Convert Awkward Arrays to NumPy for calculation
+    lead_jet_phi_np = ak.to_numpy(lead_jet_phi)
+    sublead_jet_phi_np = ak.to_numpy(sublead_jet_phi)
+    met_phi_np = ak.to_numpy(met_phi)
+    
+    d = np.sin(sublead_jet_phi_np - lead_jet_phi_np)
+    centrality = np.full_like(d, -1234.0)
+    valid_indices = np.where(d != 0)
+    
+    A = np.sin(met_phi_np[valid_indices] - lead_jet_phi_np[valid_indices]) / d[valid_indices]
+    B = np.sin(sublead_jet_phi_np[valid_indices] - met_phi_np[valid_indices]) / d[valid_indices]
+    
+    centrality[valid_indices] = (A + B) / np.sqrt(A * A + B * B)
+    
+    return centrality
 
 def Var(t):
     leadsubjet_p4 = vector.obj(px=t['ditau_obj_leadsubjet_p4'].fP.fX,
@@ -413,7 +428,9 @@ def Var(t):
     
     fake_factor = np.ones(len(t['ditau_obj_leadsubjet_p4'].fP.fX))
 
-    return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, delta_R_lead]
+    met_centrality_val = met_centrality(leadsubjet_p4.phi, subleadsubjet_p4.phi, met_phi)
+
+    return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, delta_R_lead, met_centrality_val]
 
 def Data_Var(t):
     leadsubjet_p4 = vector.obj(px=t['ditau_obj_leadsubjet_p4'].fP.fX,
@@ -445,7 +462,7 @@ def Data_Var(t):
 
     event_id = t['event_number']
     ######
-    histograms = load_histograms("ffs/FF_hadhad_ratio_1d.root")
+    histograms = load_histograms("FF_hadhad_ratio_1d.root")
     leadNTracks = np.array(t.ditau_obj_subleadsubjet_n_core_tracks)
     subleadNTracks = np.array(t.ditau_obj_leadsubjet_n_core_tracks)
     lead_pt = np.array(leadsubjet_p4.pt)
@@ -463,12 +480,13 @@ def Data_Var(t):
 
     combined_weights = np.ones(len(t['ditau_obj_leadsubjet_p4'].fP.fX))
 
-    return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, delta_R_lead]
+    met_centrality_val = met_centrality(leadsubjet_p4.phi, subleadsubjet_p4.phi, met_phi)
+
+    return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, delta_R_lead, met_centrality_val]
 
 
 def cut_x1_x2(t):
-    cut_mask = np.where((np.array(t[6]) > 0.) & (np.array(t[6]) < 1.) & (np.array(t[7]) > 0.) & (np.array(t[7]) < 1.) & (np.array(t[16]) > 0.))[0]
-    # cut_mask = np.where((np.array(t[6]) < 0) & (np.array(t[7]) < 0))[0]
+    cut_mask = np.where((np.array(t[6]) > 0) & (np.array(t[7]) > 0) & (np.array(t[16]) > 0.))[0]
     filtered_t = [np.array(arr)[cut_mask] for arr in t]
     return filtered_t
 
@@ -499,24 +517,26 @@ ttv_plot = cut_x1_x2(ttv_plot)
 w_plot = cut_x1_x2(w_plot)
 zll_plot = cut_x1_x2(zll_plot)
 
-#convert signal and background to pandas dataframe
-ggh_plot = pd.DataFrame(np.array(ggh_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-vbfh_plot = pd.DataFrame(np.array(vbfh_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-wh_plot = pd.DataFrame(np.array(wh_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-zh_plot = pd.DataFrame(np.array(zh_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-tth_plot = pd.DataFrame(np.array(tth_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
+calc_vars = ['ditau_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead', 'met_centrality']
 
-vv_plot = pd.DataFrame(np.array(vv_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-top_plot = pd.DataFrame(np.array(top_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-ztt_plot = pd.DataFrame(np.array(ztt_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-ttv_plot = pd.DataFrame(np.array(ttv_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-w_plot = pd.DataFrame(np.array(w_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
-zll_plot = pd.DataFrame(np.array(zll_plot).T, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
+#convert signal and background to pandas dataframe
+ggh_plot = pd.DataFrame(np.array(ggh_plot).T, columns=calc_vars)
+vbfh_plot = pd.DataFrame(np.array(vbfh_plot).T, columns=calc_vars)
+wh_plot = pd.DataFrame(np.array(wh_plot).T, columns=calc_vars)
+zh_plot = pd.DataFrame(np.array(zh_plot).T, columns=calc_vars)
+tth_plot = pd.DataFrame(np.array(tth_plot).T, columns=calc_vars)
+
+vv_plot = pd.DataFrame(np.array(vv_plot).T, columns=calc_vars)
+top_plot = pd.DataFrame(np.array(top_plot).T, columns=calc_vars)
+ztt_plot = pd.DataFrame(np.array(ztt_plot).T, columns=calc_vars)
+ttv_plot = pd.DataFrame(np.array(ttv_plot).T, columns=calc_vars)
+w_plot = pd.DataFrame(np.array(w_plot).T, columns=calc_vars)
+zll_plot = pd.DataFrame(np.array(zll_plot).T, columns=calc_vars)
 
 data_plot = Data_Var(data_cut)
 data_plot = cut_x1_x2(data_plot)
 data_s = np.array(data_plot).T
-data_plot = pd.DataFrame(data_s, columns=['subjet_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R', 'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead'])
+data_plot = pd.DataFrame(data_s, columns=calc_vars)
 
 
 vbfh_plot['label'] = 1
@@ -533,9 +553,9 @@ zll_plot['label'] = 0
 data_plot['label'] = 0
 df = pd.concat([data_plot, ggh_plot, vbfh_plot, wh_plot, zh_plot, tth_plot, vv_plot, top_plot, ztt_plot, ttv_plot, w_plot, zll_plot])
 training_var = [
-    'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m',
+    'ditau_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m',
     'collinear_mass', 'delta_R', 'delta_phi', 'delta_eta', 'label', 'met', 'met_sig', 
-    'event_number', 'fake_factor', 'combined_weights', 'k_t', 'delta_R_lead'
+    'event_number', 'fake_factor', 'combined_weights', 'k_t', 'delta_R_lead', 'x1', 'x2', 'met_centrality'
 ]
 df = df[training_var]
 
@@ -553,7 +573,7 @@ config_defaults = {
 
 sweep_configuration = {
     'method': 'random',
-    'name': 'ditauMLSweep3',
+    'name': 'ditauMLSweep4',
     'metric': {'goal': 'minimize', 'name': 'best_val_loss'},
     'parameters': 
     {
@@ -584,9 +604,8 @@ def train():
     num_epochs = config.num_epochs
 
     training_vars = [
-        'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'collinear_mass',
-        'delta_R', 'delta_R_lead', 'met', 'met_sig', 'delta_phi', 'delta_eta', 'k_t'
-    ]
+    'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'collinear_mass',
+    'delta_R', 'delta_R_lead', 'met', 'met_sig', 'delta_phi', 'delta_eta', 'x1', 'x2', 'met_centrality']
 
     # Split the dataset into training and validation sets
     df['eventID_mod'] = df['event_number'] % 10
@@ -596,10 +615,8 @@ def train():
     features, labels = df[training_vars].values, df['label'].values
     X_train, X_val, y_train, y_val = features[train_loc], features[test_loc], labels[train_loc], labels[test_loc]
 
-    # Normalize features
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_val_scaled = scaler.transform(X_val)
+    X_train_scaled = X_train
+    X_val_scaled = X_val
 
     # Check if GPU is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -645,11 +662,12 @@ def train():
     # Calculate class weights
     n_background = np.sum(y_train == 0)
     n_signal = np.sum(y_train == 1)
-    weight_for_0 = (1 / n_background) * ((n_background + n_signal) / 2)
-    weight_for_1 = (1 / n_signal) * ((n_background + n_signal) / 2)
+    # weight_for_0 = (1 / n_background) * ((n_background + n_signal) / 2)
+    # weight_for_1 = (1 / n_signal) * ((n_background + n_signal) / 2)
 
     # Define the loss function and optimizer
-    criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([weight_for_1 / weight_for_0]).to(device))
+    # criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([weight_for_1 / weight_for_0]).to(device))
+    criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([n_background / n_signal]).to(device))
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
 

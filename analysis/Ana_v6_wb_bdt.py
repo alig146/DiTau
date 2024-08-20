@@ -462,7 +462,7 @@ def Data_Var(t):
 
     event_id = t['event_number']
     ######
-    histograms = load_histograms("ffs/FF_hadhad_ratio_1d.root")
+    histograms = load_histograms("FF_hadhad_ratio_1d.root")
     leadNTracks = np.array(t.ditau_obj_subleadsubjet_n_core_tracks)
     subleadNTracks = np.array(t.ditau_obj_leadsubjet_n_core_tracks)
     lead_pt = np.array(leadsubjet_p4.pt)
@@ -485,11 +485,9 @@ def Data_Var(t):
     return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, delta_R_lead, met_centrality_val]
 
 def cut_x1_x2(t):
-    #cut_mask = np.where((np.array(t[6]) > -2.) & (np.array(t[6]) < 2.) & (np.array(t[7]) > -2.) & (np.array(t[7]) < 2.) & (np.array(t[16]) > 0.))[0]
-    cut_mask = np.where((np.array(t[16]) > 0.))[0]
+    cut_mask = np.where((np.array(t[6]) > 0) & (np.array(t[7]) > 0) & (np.array(t[16]) > 0.))[0]
     filtered_t = [np.array(arr)[cut_mask] for arr in t]
     return filtered_t
-
 
 ggh_plot = Var(ggh_cut)
 vbfh_plot = Var(vbfh_cut)
@@ -573,8 +571,24 @@ def split_data(df):
 
 df_split = split_data(df)
 
-bdt_training_var = ['f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6']
-feature_name_mapping = {
+sweep_config = {
+    'method': 'random', 
+    'name': 'ditauBDTweep2',
+    'metric': {'name': 'significance', 'goal': 'maximize'},
+    'parameters': {
+        'learning_rate': {'min': 0.004, 'max': 0.05},
+        'max_depth': {'min': 2, 'max': 5},
+        'n_estimators': {'min': 40, 'max': 300},
+    }
+}
+
+def train():
+    wandb.init()
+    config = wandb.config
+
+    bdt_training_var = ['f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9']
+    feature_name_mapping = {
+    'ditau_pt': 'ditau_pt',
     'leadsubjet_pt': 'f0',
     'subleadsubjet_pt': 'f1',
     'visible_ditau_m': 'f2',
@@ -594,44 +608,6 @@ feature_name_mapping = {
     'delta_phi': 'f11',
     'delta_eta': 'f12',
     'k_t': 'f13'
-}
-
-sweep_config = {
-    'method': 'random', 
-    'name': 'ditauBDTweep1',
-    'metric': {'name': 'significance', 'goal': 'maximize'},
-    'parameters': {
-        'learning_rate': {'min': 0.004, 'max': 0.07},
-        'max_depth': {'min': 2, 'max': 6},
-        'n_estimators': {'min': 40, 'max': 300},
-    }
-}
-
-def train():
-    wandb.init()
-    config = wandb.config
-
-    bdt_training_var = ['f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9']
-    feature_name_mapping = {
-        'leadsubjet_pt': 'f0',
-        'subleadsubjet_pt': 'f1',
-        'visible_ditau_m': 'f2',
-        'collinear_mass': 'f3',
-        'delta_R': 'f4',
-        'label': 'label',
-        'met': 'f5',
-        'met_sig': 'f6',
-        'event_number': 'event_number',
-        'fake_factor': 'fake_factor',
-        'combined_weights': 'combined_weights',
-        'ids': 'ids',
-        'x1': 'f7',
-        'x2': 'f8',
-        'met_centrality': 'f9',
-        'delta_R_lead': 'f10',
-        'delta_phi': 'f11',
-        'delta_eta': 'f12',
-        'k_t': 'f13'
     }
 
     # Map df_split column names

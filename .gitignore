@@ -1,6 +1,7 @@
 #local python cache 
 __pycache__
 .ipynb_checkpoints
+utils-checkpoint.py
 *.pth
 *.onnx
 analysis/ffs/

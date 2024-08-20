@@ -25,20 +25,20 @@ branches = ['d0TJVA', 'z0TJVA', 'trackPt', 'trackEta', 'trackPhi', 'numberOfInne
             'ditau_m_core_lead', 'ditau_m_core_subl', 
             'ditau_m_tracks_lead', 'ditau_m_tracks_subl', 'ditau_n_track', 'averageInteractionsPerCrossing', 'ditau_eta']
 
-path = '/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn'
-# file_paths = [
-# path+'/user.agarabag*JZ0*.root',
-# path+'/user.agarabag*JZ1*.root',
-# path+'/user.agarabag*JZ2*.root',
-# path+'/user.agarabag*JZ3*.root',
-# path+'/user.agarabag*JZ4*.root',
-# path+'/user.agarabag*JZ5*.root',
-# path+'/user.agarabag*JZ6*.root',
-# path+'/user.agarabag*JZ7*.root',
-# path+'/user.agarabag*JZ8*.root',
-# path+'/user.agarabag*JZ9incl*.root']
+path = '/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn_no_cuts'
+file_paths = [
+path+'/user.agarabag*JZ0*.root',
+path+'/user.agarabag*JZ1*.root',
+path+'/user.agarabag*JZ2*.root',
+path+'/user.agarabag*JZ3*.root',
+path+'/user.agarabag*JZ4*.root',
+path+'/user.agarabag*JZ5*.root',
+path+'/user.agarabag*JZ6*.root',
+path+'/user.agarabag*JZ7*.root',
+path+'/user.agarabag*JZ8*.root',
+path+'/user.agarabag*JZ9incl*.root']
 
-file_paths = [path+'/user.agarabag.VHTauTauNTuple.802168.Py8EG_A14NNPDF23LO_VHtautau_flatmasspTFilt_hadhad_v2_ntuple.root']
+# file_paths = [path+'/user.agarabag.VHTauTauNTuple.802168.Py8EG_A14NNPDF23LO_VHtautau_flatmasspTFilt_hadhad_v2_ntuple.root']
 
 for index in range(len(file_paths)):
     # l1 = glob.glob(os.path.join(file_paths[index]))
@@ -162,8 +162,8 @@ for index in range(len(file_paths)):
     # padded_ditau_subjet_pt = np.array([np.pad(sublist, (0, max_length - len(sublist)), 'constant') for sublist in ditau_subjet_pt])
 
     # Create an H5 file
-    # h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/ntuple_flattened_v2_jz{index}.h5', 'w')
-    h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/ntuple_flattened_VHtautau.h5', 'w')
+    h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn_no_cuts/ntuple_flattened_v2_jz{index}.h5', 'w')
+    # h5_file = h5py.File(f'/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn_no_cuts/ntuple_flattened_VHtautau.h5', 'w')
 
     # Create datasets in the H5 file
     # h5_file.create_dataset('ditau_subjet_pt', data=padded_ditau_subjet_pt, compression='gzip')
