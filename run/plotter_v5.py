@@ -11,15 +11,12 @@ from utils.utils import *
 import pandas as pd
 
 def plotter():
-    # path = "/global/u2/a/agarabag/pscratch/ditdau_samples/"
-    # combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
-    # combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
+    path = "/global/u2/a/agarabag/pscratch/ditdau_samples/"
+    combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
+    combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
     ####nominal
  
     ####
-    combined_bkg = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/combined_jz_ntuple_inc_omni.csv')
-    # combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
-    combined_signal = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/vhtautau_ntuple_inc_omni.csv')
 
     class DataFrameCuts:
         def __init__(self, df_bkg, df_signal):
@@ -74,22 +71,20 @@ def plotter():
     # combined_bkg_bdt = combined_bkg[combined_bkg['inc_new_bdt'] > 0.045]
     # combined_signal_bdt = combined_signal[combined_signal['inc_new_bdt'] > 0.957]
 
-    # combined_bkg = combined_bkg[combined_bkg['bdt_score_new']>0]
-    # combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
-    # combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
-    # combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
+    combined_bkg = combined_bkg[combined_bkg['bdt_score_new']>0]
+    combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
+    combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
+    combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
 
     ##for fake factors##
-    combined_bkg_bdt = combined_bkg[(combined_bkg['bdt_score_new'] < 0.74)]
-    combined_bkg = combined_bkg[(combined_bkg['bdt_score_new'] >= 0.74)]
-    combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
-    combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
+    # combined_bkg_bdt = combined_bkg[(combined_bkg['bdt_score_new'] < 0.74)]
+    # combined_bkg = combined_bkg[(combined_bkg['bdt_score_new'] >= 0.74)]
+    # combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
+    # combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
     ############################
     # combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
     # combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.957]
     ############################
-    # combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score'] > 0.55]
-    # combined_signal_bdt = combined_signal[combined_signal['bdt_score'] > 0.72]
 
 
     cuts_processor = DataFrameCuts(combined_bkg, combined_signal)
@@ -176,28 +171,28 @@ def plotter():
 
     p = PdfPages("roc_curves.pdf") 
 
-    fig7 = plt.figure(figsize=(6, 6))
-    for i in range(4):
-        fpr, tpr = calc_roc(combined['signal'][channel[i]]['bdt_score'], combined['bkg'][channel[i]]['bdt_score'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
-        roc_auc = auc(fpr, tpr)
-        plt.plot(tpr, 1/fpr, color=color[i], linewidth=1, alpha=0.7, label=f'{channel[i]}')
+    # fig7 = plt.figure(figsize=(6, 6))
+    # for i in range(4):
+    #     fpr, tpr = calc_roc(combined['signal'][channel[i]]['bdt_score'], combined['bkg'][channel[i]]['bdt_score'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
+    #     roc_auc = auc(fpr, tpr)
+    #     plt.plot(tpr, 1/fpr, color=color[i], linewidth=1, alpha=0.7, label=f'{channel[i]}')
 
-    for i in range(4):
-        # fpr, tpr = calc_roc(combined['signal'][channel[i]]['inc_new_bdt'], combined['bkg'][channel[i]]['inc_new_bdt'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
-        fpr, tpr = calc_roc(combined['signal'][channel[i]]['bdt_score_new'], combined['bkg'][channel[i]]['bdt_score_new'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
-        roc_auc = auc(fpr, tpr)
-        plt.plot(tpr, 1/fpr, color=color[i], linestyle='dashed', label=f'{channel[i]} new')
+    # for i in range(4):
+    #     # fpr, tpr = calc_roc(combined['signal'][channel[i]]['inc_new_bdt'], combined['bkg'][channel[i]]['inc_new_bdt'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
+    #     fpr, tpr = calc_roc(combined['signal'][channel[i]]['bdt_score_new'], combined['bkg'][channel[i]]['bdt_score_new'], combined['signal'][channel[i]]['weight'], combined['bkg'][channel[i]]['weight'])
+    #     roc_auc = auc(fpr, tpr)
+    #     plt.plot(tpr, 1/fpr, color=color[i], linestyle='dashed', label=f'{channel[i]} new')
 
-    plt.xlabel("Signal Efficiency", fontsize=12)
-    plt.ylabel("Background Rejection", fontsize=12)
-    plt.yscale('log')
-    plt.legend()
-    plt.legend(prop={'size': 10})
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
-    # plt.grid(True, which="both", ls="--")
-    p.savefig(fig7)
-    plt.close(fig7)
+    # plt.xlabel("Signal Efficiency", fontsize=12)
+    # plt.ylabel("Background Rejection", fontsize=12)
+    # plt.yscale('log')
+    # plt.legend()
+    # plt.legend(prop={'size': 10})
+    # plt.xticks(fontsize=10)
+    # plt.yticks(fontsize=10)
+    # # plt.grid(True, which="both", ls="--")
+    # p.savefig(fig7)
+    # plt.close(fig7)
 
 
     ####### plot the score distribution
@@ -283,16 +278,16 @@ def plotter():
     sig_mu_list = [combined_signal_1p3p['average_mu'], combined_signal_1p3p_bdt['average_mu'], combined_signal_1p1p['average_mu'], combined_signal_1p1p_bdt['average_mu'], combined_signal_3p3p['average_mu'], combined_signal_3p3p_bdt['average_mu'], combined_signal_inc['average_mu'], combined_signal_inc_bdt['average_mu']]
     sig_w_list = [combined_signal_1p3p['event_weight'], combined_signal_1p3p_bdt['event_weight'], combined_signal_1p1p['event_weight'], combined_signal_1p1p_bdt['event_weight'], combined_signal_3p3p['event_weight'], combined_signal_3p3p_bdt['event_weight'], combined_signal_inc['event_weight'], combined_signal_inc_bdt['event_weight']]
 
-    # bkg_pt_list = [combined_bkg_1p3p_bdt['ditau_pt']/1e6, combined_bkg_1p3p['ditau_pt']/1e6, combined_bkg_1p1p_bdt['ditau_pt']/1e6, combined_bkg_1p1p['ditau_pt']/1e6, combined_bkg_3p3p_bdt['ditau_pt']/1e6, combined_bkg_3p3p['ditau_pt']/1e6, combined_bkg_inc_bdt['ditau_pt']/1e6, combined_bkg_inc['ditau_pt']/1e6]
-    bkg_pt_list = [combined_bkg_1p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p3p['sublead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p1p['sublead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_3p3p['sublead_subjet_pt']/1e6, combined_bkg_inc_bdt['sublead_subjet_pt']/1e6, combined_bkg_inc['sublead_subjet_pt']/1e6]
+    bkg_pt_list = [combined_bkg_1p3p_bdt['ditau_pt']/1e6, combined_bkg_1p3p['ditau_pt']/1e6, combined_bkg_1p1p_bdt['ditau_pt']/1e6, combined_bkg_1p1p['ditau_pt']/1e6, combined_bkg_3p3p_bdt['ditau_pt']/1e6, combined_bkg_3p3p['ditau_pt']/1e6, combined_bkg_inc_bdt['ditau_pt']/1e6, combined_bkg_inc['ditau_pt']/1e6]
+    # bkg_pt_list = [combined_bkg_1p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p3p['sublead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['sublead_subjet_pt']/1e6, combined_bkg_1p1p['sublead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['sublead_subjet_pt']/1e6, combined_bkg_3p3p['sublead_subjet_pt']/1e6, combined_bkg_inc_bdt['sublead_subjet_pt']/1e6, combined_bkg_inc['sublead_subjet_pt']/1e6]
     # bkg_pt_list = [combined_bkg_1p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p3p['lead_subjet_pt']/1e6, combined_bkg_1p1p_bdt['lead_subjet_pt']/1e6, combined_bkg_1p1p['lead_subjet_pt']/1e6, combined_bkg_3p3p_bdt['lead_subjet_pt']/1e6, combined_bkg_3p3p['lead_subjet_pt']/1e6, combined_bkg_inc_bdt['lead_subjet_pt']/1e6, combined_bkg_inc['lead_subjet_pt']/1e6]
     bkg_eta_list = [combined_bkg_1p3p_bdt['eta'], combined_bkg_1p3p['eta'], combined_bkg_1p1p_bdt['eta'], combined_bkg_1p1p['eta'], combined_bkg_3p3p_bdt['eta'], combined_bkg_3p3p['eta'], combined_bkg_inc_bdt['eta'], combined_bkg_inc['eta']]
     bkg_mu_list = [combined_bkg_1p3p_bdt['average_mu'], combined_bkg_1p3p['average_mu'], combined_bkg_1p1p_bdt['average_mu'], combined_bkg_1p1p['average_mu'], combined_bkg_3p3p_bdt['average_mu'], combined_bkg_3p3p['average_mu'], combined_bkg_inc_bdt['average_mu'], combined_bkg_inc['average_mu']]
     bkg_w_list = [combined_bkg_1p3p_bdt['event_weight'], combined_bkg_1p3p['event_weight'], combined_bkg_1p1p_bdt['event_weight'], combined_bkg_1p1p['event_weight'], combined_bkg_3p3p_bdt['event_weight'], combined_bkg_3p3p['event_weight'], combined_bkg_inc_bdt['event_weight'], combined_bkg_inc['event_weight']]
 
-    # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "DiJet P_{T} [TeV]", 20, 0.2, 1., eta=False, bkg=True)
+    pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "DiJet P_{T} [TeV]", 20, 0.2, 1., eta=False, bkg=True)
     # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "Leading Subjet P_{T} [TeV]", 20, 0., 0.5, eta=False, bkg=True)
-    pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "SubLeading Subjet P_{T} [TeV]", 20, 0., 0.5, eta=False, bkg=True)
+    # pt_1p3p_eff_w, pt_1p1p_eff_w, pt_3p3p_eff_w, pt_inc_eff_w = plot_eff(bkg_pt_list, bkg_w_list, "SubLeading Subjet P_{T} [TeV]", 20, 0., 0.5, eta=False, bkg=True)
 
     pt_1p3p_eff_w.SetMarkerStyle(20)
     pt_1p1p_eff_w.SetMarkerStyle(20)
@@ -445,7 +440,7 @@ def plotter():
 
     ##### signal eff plots
 
-    pt_sig_1p3p_eff_w, pt_sig_1p1p_eff_w, pt_sig_3p3p_eff_w, pt_sig_inc_eff_w = plot_eff(sig_pt_list, sig_w_list, "P_{T} [TeV]", 20, 0.2, 1., eta=False, bkg=False)
+    pt_sig_1p3p_eff_w, pt_sig_1p1p_eff_w, pt_sig_3p3p_eff_w, pt_sig_inc_eff_w = plot_eff(sig_pt_list, sig_w_list, "P_{T} [TeV]", 15, 0.2, 1., eta=False, bkg=False)
     pt_sig_1p3p_eff_w.SetMarkerStyle(20)
     pt_sig_1p1p_eff_w.SetMarkerStyle(20)
     pt_sig_3p3p_eff_w.SetMarkerStyle(20)
@@ -458,6 +453,11 @@ def plotter():
     pt_sig_1p1p_eff_w.SetMarkerColor(ROOT.kOrange+8)
     pt_sig_3p3p_eff_w.SetMarkerColor(ROOT.kAzure+8)
     pt_sig_inc_eff_w.SetMarkerColor(ROOT.kSpring-5)
+    pt_sig_1p3p_eff_w.SetLineColor(ROOT.kBlue+1)
+    pt_sig_1p1p_eff_w.SetLineColor(ROOT.kOrange+8)
+    pt_sig_3p3p_eff_w.SetLineColor(ROOT.kAzure+8)
+    pt_sig_inc_eff_w.SetLineColor(ROOT.kSpring-5)
+
     pt_sig_1p3p_eff_w.Draw(" e")
     pt_sig_1p1p_eff_w.Draw("same e")
     pt_sig_3p3p_eff_w.Draw("same e")

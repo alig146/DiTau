@@ -16,8 +16,9 @@ def plotter():
     # # combined_signal = pd.read_csv(path+'inc_bdt_signal.csv')
     # combined_signal = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/vhtautau_ntuple_inc_omni_weights.csv')
 
-    combined_bkg = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/test.csv')
-    combined_signal = pd.read_csv('/global/u2/a/agarabag/pscratch/ditdau_samples/samples_for_gnn/test.csv')
+    path = "/global/u2/a/agarabag/pscratch/ditdau_samples/"
+    combined_bkg = pd.read_csv(path+'combined_bkg_inc.csv')
+    combined_signal = pd.read_csv(path+'combined_signal_inc.csv')
 
     class DataFrameCuts:
         def __init__(self, df_bkg, df_signal):
@@ -64,12 +65,12 @@ def plotter():
     channel = ['1p3p', '1p1p', '3p3p', 'inc']
     color = ['red', 'darkorange', 'green', 'steelblue']
     
-    combined_bkg = combined_bkg[combined_bkg['omni_probs']>0]
-    combined_signal = combined_signal[combined_signal['omni_probs']>0]
-    # combined_bkg_bdt = combined_bkg[combined_bkg['omni_probs'] > 0.492]
-    # combined_signal_bdt = combined_signal[combined_signal['omni_probs'] > 0.492]
-    combined_bkg_bdt = combined_bkg[combined_bkg['omni_probs'] > 0.999] #was 0.87
-    combined_signal_bdt = combined_signal[combined_signal['omni_probs'] > 0.999] #was 0.87
+
+
+    combined_bkg = combined_bkg[combined_bkg['bdt_score_new']>0]
+    combined_signal = combined_signal[combined_signal['bdt_score_new']>0]
+    combined_bkg_bdt = combined_bkg[combined_bkg['bdt_score_new'] > 0.045]
+    combined_signal_bdt = combined_signal[combined_signal['bdt_score_new'] > 0.96]
 
     cuts_processor = DataFrameCuts(combined_bkg, combined_signal)
     combined = cuts_processor.process()
@@ -95,12 +96,10 @@ def plotter():
     combined_signal_inc_bdt = combined_bdt['signal']['inc']
 
     #for bdt
-    combined_bkg_mva = combined_bkg[combined_bkg['bdt_score_new']>0]
-    combined_signal_mva = combined_signal[combined_signal['bdt_score_new']>0]
-    # combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score_new'] > 0.581]
-    # combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score_new'] > 0.581]
-    combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score_new'] > 0.994]
-    combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score_new'] > 0.994]
+    combined_bkg_mva = combined_bkg[combined_bkg['bdt_score']>0]
+    combined_signal_mva = combined_signal[combined_signal['bdt_score']>0]
+    combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score'] > 0.045]
+    combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score'] > 0.72]
 
     cuts_processor_mva = DataFrameCuts(combined_bkg_mva, combined_signal_mva)
     combined_mva = cuts_processor_mva.process()
@@ -125,11 +124,26 @@ def plotter():
     combined_signal_3p3p_bdt_mva = combined_bdt_mva['signal']['3p3p']
     combined_signal_inc_bdt_mva = combined_bdt_mva['signal']['inc']
 
-    print(len(combined_bkg_1p3p), len(combined_bkg_1p3p_bdt), len(combined_bkg_1p1p), len(combined_bkg_1p1p_bdt), len(combined_bkg_3p3p), len(combined_bkg_3p3p_bdt), len(combined_bkg_inc), len(combined_bkg_inc_bdt))
+    combined_bkg_1p3p = combined_bkg_1p3p[(combined_bkg_1p3p['event_id']%100) >= 80]
+    combined_bkg_1p3p_bdt = combined_bkg_1p3p_bdt[(combined_bkg_1p3p_bdt['event_id']%100) >= 80]
+    combined_bkg_1p1p = combined_bkg_1p1p[(combined_bkg_1p1p['event_id']%100) >= 80]
+    combined_bkg_1p1p_bdt = combined_bkg_1p1p_bdt[(combined_bkg_1p1p_bdt['event_id']%100) >= 80]
+    combined_bkg_3p3p = combined_bkg_3p3p[(combined_bkg_3p3p['event_id']%100) >= 80]
+    combined_bkg_3p3p_bdt = combined_bkg_3p3p_bdt[(combined_bkg_3p3p_bdt['event_id']%100) >= 80]
+    combined_bkg_inc = combined_bkg_inc[(combined_bkg_inc['event_id']%100) >= 80]
+    combined_bkg_inc_bdt = combined_bkg_inc_bdt[(combined_bkg_inc_bdt['event_id']%100) >= 80]
 
-    p = PdfPages("roc_curves.pdf") 
+    combined_signal_1p3p = combined_signal_1p3p[(combined_signal_1p3p['event_id']%100) >= 80]
+    combined_signal_1p3p_bdt = combined_signal_1p3p_bdt[(combined_signal_1p3p_bdt['event_id']%100) >= 80]
+    combined_signal_1p1p = combined_signal_1p1p[(combined_signal_1p1p['event_id']%100) >= 80]
+    combined_signal_1p1p_bdt = combined_signal_1p1p_bdt[(combined_signal_1p1p_bdt['event_id']%100) >= 80]
+    combined_signal_3p3p = combined_signal_3p3p[(combined_signal_3p3p['event_id']%100) >= 80]
+    combined_signal_3p3p_bdt = combined_signal_3p3p_bdt[(combined_signal_3p3p_bdt['event_id']%100) >= 80]
+    combined_signal_inc = combined_signal_inc[(combined_signal_inc['event_id']%100) >= 80]
+    combined_signal_inc_bdt = combined_signal_inc_bdt[(combined_signal_inc_bdt['event_id']%100) >= 80]
+    # p = PdfPages("roc_curves.pdf") 
 
-    fig7 = plt.figure(figsize=(6, 6))
+    # fig7 = plt.figure(figsize=(6, 6))
     # for i in range(4):
     #     fpr_bdt, tpr_bdt, thresholds_bdt = calc_roc(combined['signal'][channel[i]]['bdt_score_new'], combined['bkg'][channel[i]]['bdt_score_new'], combined['signal'][channel[i]]['event_weight'], combined['bkg'][channel[i]]['event_weight'])
     #     roc_auc = auc(fpr_bdt, tpr_bdt)
@@ -149,101 +163,96 @@ def plotter():
 
 
 
-    for i in range(4):
-        fpr_bdt, tpr_bdt, thresholds_bdt = calc_roc(combined['signal'][channel[i]]['bdt_score_new'], 
-                                                    combined['bkg'][channel[i]]['bdt_score_new'], 
-                                                    combined['signal'][channel[i]]['event_weight'], 
-                                                    combined['bkg'][channel[i]]['event_weight'])        
-        # Find FPR value for BDT at threshold 0.96
-        threshold_bdt_96 = 0.96
-        idx_bdt = np.argmin(np.abs(thresholds_bdt - threshold_bdt_96))
-        fpr_value_bdt = fpr_bdt[idx_bdt]
-        tpr_value_bdt = tpr_bdt[idx_bdt]
-        print(f"FPR value for BDT at threshold 0.96 for {channel[i]}: {fpr_value_bdt}")
-        print(f"TPR value for BDT at threshold 0.96 for {channel[i]}: {tpr_value_bdt}")
+    # for i in range(4):
+    #     fpr_bdt, tpr_bdt, thresholds_bdt = calc_roc(combined['signal'][channel[i]]['bdt_score_new'], 
+    #                                                 combined['bkg'][channel[i]]['bdt_score_new'], 
+    #                                                 combined['signal'][channel[i]]['event_weight'], 
+    #                                                 combined['bkg'][channel[i]]['event_weight'])        
+    #     # Find FPR value for BDT at threshold 0.96
+    #     threshold_bdt_96 = 0.96
+    #     fpr_idx_bdt = np.argmin(np.abs(thresholds_bdt - threshold_bdt_96))
+    #     fpr_value_bdt = fpr_bdt[fpr_idx_bdt]
+    #     print(f"FPR value for BDT at threshold 0.96 for {channel[i]}: {fpr_value_bdt}")
 
-        # Calculate ROC for OMNI
-        fpr_omni, tpr_omni, thresholds_omni = calc_roc(combined['signal'][channel[i]]['omni_probs'], 
-                                                    combined['bkg'][channel[i]]['omni_probs'], 
-                                                    combined['signal'][channel[i]]['event_weight'], 
-                                                    combined['bkg'][channel[i]]['event_weight'])
+    #     # Calculate ROC for OMNI
+    #     fpr_omni, tpr_omni, thresholds_omni = calc_roc(combined['signal'][channel[i]]['omni_probs'], 
+    #                                                 combined['bkg'][channel[i]]['omni_probs'], 
+    #                                                 combined['signal'][channel[i]]['event_weight'], 
+    #                                                 combined['bkg'][channel[i]]['event_weight'])
         
-        # Find threshold value for OMNI at the same FPR value as BDT
-        fpr_idx_omni = np.argmin(np.abs(fpr_omni - fpr_value_bdt))
-        threshold_omni = thresholds_omni[fpr_idx_omni]
-        print(f"Threshold value for OMNI at FPR value of BDT for {channel[i]}: {threshold_omni}")
-        tpr_idx_omni = np.argmin(np.abs(tpr_omni - tpr_value_bdt))
-        trp_threshold_omni = thresholds_omni[tpr_idx_omni]
-        print(f"Threshold value for OMNI at TPR value of BDT for {channel[i]}: {trp_threshold_omni}")
+    #     # Find threshold value for OMNI at the same FPR value as BDT
+    #     fpr_idx_omni = np.argmin(np.abs(fpr_omni - fpr_value_bdt))
+    #     threshold_omni = thresholds_omni[fpr_idx_omni]
+    #     print(f"Threshold value for OMNI at FPR value of BDT for {channel[i]}: {threshold_omni}")
 
 
-    plt.xlabel('True Positive Rate')
-    plt.ylabel('1 / False Positive Rate')
-    plt.title('ROC Curve')
-    plt.legend()
-    plt.show()
+    # plt.xlabel('True Positive Rate')
+    # plt.ylabel('1 / False Positive Rate')
+    # plt.title('ROC Curve')
+    # plt.legend()
+    # plt.show()
 
-    plt.xlabel("Signal Efficiency", fontsize=12)
-    plt.ylabel("Background Rejection", fontsize=12)
-    plt.yscale('log')
-    plt.legend()
-    plt.legend(prop={'size': 10})
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
-    plt.grid(True, which="both", ls="--")
-    p.savefig(fig7)
-    plt.close(fig7)
+    # plt.xlabel("Signal Efficiency", fontsize=12)
+    # plt.ylabel("Background Rejection", fontsize=12)
+    # plt.yscale('log')
+    # plt.legend()
+    # plt.legend(prop={'size': 10})
+    # plt.xticks(fontsize=10)
+    # plt.yticks(fontsize=10)
+    # plt.grid(True, which="both", ls="--")
+    # p.savefig(fig7)
+    # plt.close(fig7)
 
-    ####### plot the score distribution
-    fig_score = plt.figure()
-    plt.hist(combined_bkg_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p bkg", color='black', weights=combined_bkg_1p3p['weight'])
-    plt.hist(combined_bkg_1p3p['omni_probs'], bins=60, histtype="step", label="1p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p3p['weight'])
-    plt.hist(combined_signal_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p sig", color='red', weights=combined_signal_1p3p['weight'])
-    plt.hist(combined_signal_1p3p['omni_probs'], bins=60, histtype="step", label="1p3p sig new", linestyle='dashed', color='red', weights=combined_signal_1p3p['weight'])
-    plt.xlabel("BDT score")
-    plt.ylabel("Counts")
-    plt.yscale('log')
-    plt.legend()
-    p.savefig(fig_score)
-    plt.close(fig_score)
+    # ####### plot the score distribution
+    # fig_score = plt.figure()
+    # plt.hist(combined_bkg_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p bkg", color='black', weights=combined_bkg_1p3p['weight'])
+    # plt.hist(combined_bkg_1p3p['omni_probs'], bins=60, histtype="step", label="1p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p3p['weight'])
+    # plt.hist(combined_signal_1p3p['bdt_score_new'], bins=60, histtype="step", label="1p3p sig", color='red', weights=combined_signal_1p3p['weight'])
+    # plt.hist(combined_signal_1p3p['omni_probs'], bins=60, histtype="step", label="1p3p sig new", linestyle='dashed', color='red', weights=combined_signal_1p3p['weight'])
+    # plt.xlabel("BDT score")
+    # plt.ylabel("Counts")
+    # plt.yscale('log')
+    # plt.legend()
+    # p.savefig(fig_score)
+    # plt.close(fig_score)
 
-    fig_score2 = plt.figure()
-    plt.hist(combined_bkg_1p1p['bdt_score_new'], bins=60, histtype="step", label="1p1p bkg", color='black', weights=combined_bkg_1p1p['weight'])
-    plt.hist(combined_bkg_1p1p['omni_probs'], bins=60, histtype="step", label="1p1p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p1p['weight'])
-    plt.hist(combined_signal_1p1p['bdt_score_new'], bins=60, histtype="step", label="1p1p sig", color='red', weights=combined_signal_1p1p['weight'])
-    plt.hist(combined_signal_1p1p['omni_probs'], bins=60, histtype="step", label="1p1p sig new", linestyle='dashed', color='red', weights=combined_signal_1p1p['weight'])
-    plt.xlabel("BDT score")
-    plt.ylabel("Counts")
-    plt.yscale('log')
-    plt.legend()
-    p.savefig(fig_score2)
-    plt.close(fig_score2)
+    # fig_score2 = plt.figure()
+    # plt.hist(combined_bkg_1p1p['bdt_score_new'], bins=60, histtype="step", label="1p1p bkg", color='black', weights=combined_bkg_1p1p['weight'])
+    # plt.hist(combined_bkg_1p1p['omni_probs'], bins=60, histtype="step", label="1p1p bkg new", linestyle='dashed', color='black', weights=combined_bkg_1p1p['weight'])
+    # plt.hist(combined_signal_1p1p['bdt_score_new'], bins=60, histtype="step", label="1p1p sig", color='red', weights=combined_signal_1p1p['weight'])
+    # plt.hist(combined_signal_1p1p['omni_probs'], bins=60, histtype="step", label="1p1p sig new", linestyle='dashed', color='red', weights=combined_signal_1p1p['weight'])
+    # plt.xlabel("BDT score")
+    # plt.ylabel("Counts")
+    # plt.yscale('log')
+    # plt.legend()
+    # p.savefig(fig_score2)
+    # plt.close(fig_score2)
 
-    fig_score3 = plt.figure()
-    plt.hist(combined_bkg_3p3p['bdt_score_new'], bins=60, histtype="step", label="3p3p bkg", color='black', weights=combined_bkg_3p3p['weight'])
-    plt.hist(combined_bkg_3p3p['omni_probs'], bins=60, histtype="step", label="3p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_3p3p['weight'])
-    plt.hist(combined_signal_3p3p['bdt_score_new'], bins=60, histtype="step", label="3p3p sig", color='red', weights=combined_signal_3p3p['weight'])
-    plt.hist(combined_signal_3p3p['omni_probs'], bins=60, histtype="step", label="3p3p sig new", linestyle='dashed', color='red', weights=combined_signal_3p3p['weight'])
-    plt.xlabel("BDT score")
-    plt.ylabel("Counts")
-    plt.yscale('log')
-    plt.legend()
-    p.savefig(fig_score3)
-    plt.close(fig_score3)
+    # fig_score3 = plt.figure()
+    # plt.hist(combined_bkg_3p3p['bdt_score_new'], bins=60, histtype="step", label="3p3p bkg", color='black', weights=combined_bkg_3p3p['weight'])
+    # plt.hist(combined_bkg_3p3p['omni_probs'], bins=60, histtype="step", label="3p3p bkg new", linestyle='dashed', color='black', weights=combined_bkg_3p3p['weight'])
+    # plt.hist(combined_signal_3p3p['bdt_score_new'], bins=60, histtype="step", label="3p3p sig", color='red', weights=combined_signal_3p3p['weight'])
+    # plt.hist(combined_signal_3p3p['omni_probs'], bins=60, histtype="step", label="3p3p sig new", linestyle='dashed', color='red', weights=combined_signal_3p3p['weight'])
+    # plt.xlabel("BDT score")
+    # plt.ylabel("Counts")
+    # plt.yscale('log')
+    # plt.legend()
+    # p.savefig(fig_score3)
+    # plt.close(fig_score3)
 
-    fig_score4 = plt.figure()
-    plt.hist(combined_bkg_inc['bdt_score_new'], bins=60, histtype="step", label="inc bkg", color='black', weights=combined_bkg_inc['weight'])
-    plt.hist(combined_bkg_inc['omni_probs'], bins=60, histtype="step", label="inc bkg new", linestyle='dashed', color='black', weights=combined_bkg_inc['weight'])
-    plt.hist(combined_signal_inc['bdt_score_new'], bins=60, histtype="step", label="inc sig", color='red', weights=combined_signal_inc['weight'])
-    plt.hist(combined_signal_inc['omni_probs'], bins=60, histtype="step", label="inc sig new", linestyle='dashed', color='red', weights=combined_signal_inc['weight'])
-    plt.xlabel("BDT score")
-    plt.ylabel("Counts")
-    plt.yscale('log')
-    plt.legend()
-    p.savefig(fig_score4)
-    plt.close(fig_score4)
+    # fig_score4 = plt.figure()
+    # plt.hist(combined_bkg_inc['bdt_score_new'], bins=60, histtype="step", label="inc bkg", color='black', weights=combined_bkg_inc['weight'])
+    # plt.hist(combined_bkg_inc['omni_probs'], bins=60, histtype="step", label="inc bkg new", linestyle='dashed', color='black', weights=combined_bkg_inc['weight'])
+    # plt.hist(combined_signal_inc['bdt_score_new'], bins=60, histtype="step", label="inc sig", color='red', weights=combined_signal_inc['weight'])
+    # plt.hist(combined_signal_inc['omni_probs'], bins=60, histtype="step", label="inc sig new", linestyle='dashed', color='red', weights=combined_signal_inc['weight'])
+    # plt.xlabel("BDT score")
+    # plt.ylabel("Counts")
+    # plt.yscale('log')
+    # plt.legend()
+    # p.savefig(fig_score4)
+    # plt.close(fig_score4)
 
-    p.close() #end of plt plots
+    # p.close() #end of plt plots
 
     # sig_1p3p_denom, sig_1p3p_denom_edge, sig_1p3p_num, sig_1p3p_num_edge = calculate_efficiency_hists(f1['ditau_pt'], bins, cuts, cuts_bdt)
     # sig_1p1p_denom, sig_1p1p_denom_edge, sig_1p1p_num, sig_1p1p_num_edge = calculate_efficiency_hists(f1['ditau_pt'], bins, cuts_1p1p, cuts_bdt_1p1p)

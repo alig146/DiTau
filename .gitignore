@@ -7,4 +7,7 @@ utils-checkpoint.py
 analysis/ffs/
 run/training_var_plots/
 analysis/wandb/
+analysis/*.h
+analysis/*.root
+analysis/*.pkl
 *~

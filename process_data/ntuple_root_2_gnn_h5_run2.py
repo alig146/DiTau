@@ -9,12 +9,6 @@ import h5py
 sys.path.append("..")
 from utils.utils import flattened_pt_weighted, getXS, flattened_pt
 
-# def get_first(array):
-#     if len(array) > 0:
-#         return array[:, 0]
-#     else:
-#         return ak.Array([])
-
 # Define the branches to be extracted
 branches = ['d0TJVA', 'z0TJVA', 'trackPt', 'trackEta', 'trackPhi', 'mcEventWeights', 'omni_score', 'delta_eta', 'delta_phi', 'pt_log', 'pt_ratio_log', 'delta_R',
             'numberOfInnermostPixelLayerHits', 'numberOfPixelHits', 'numberOfSCTHits', 'charge', 'ditau_idx',
@@ -33,25 +27,17 @@ branches = ['d0TJVA', 'z0TJVA', 'trackPt', 'trackEta', 'trackPhi', 'mcEventWeigh
 # path = '/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn'
 path = '/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn_onnx'
 
-# bkg_file_paths = [path + pattern for pattern in [
-#     '/user.agarabag*JZ0*.root', '/user.agarabag*JZ1*.root', '/user.agarabag*JZ2*.root', 
-#     '/user.agarabag*JZ3*.root', '/user.agarabag*JZ4*.root', '/user.agarabag*JZ5*.root', 
-#     '/user.agarabag*JZ6*.root', '/user.agarabag*JZ7*.root', '/user.agarabag*JZ8*.root', 
-#     '/user.agarabag*JZ9incl*.root']]
-# '/user.agarabag*JZ9incl*.root', 'user.agarabag.ZPrimeNTuple.801685.Py8EG_A14_flatpT_Zprime_tthad_v3_ntuple.root']]
-# signal_file_paths = [path + '/user.agarabag.VHTauTauNTuple.802168.Py8EG_A14NNPDF23LO_VHtautau_flatmasspTFilt_hadhad_v2_ntuple.root']
-# signal_file_paths = [path + '/user.agarabag.VHTauTauOmni.802168.Py8EG_A14NNPDF23LO_VHtautau_flatmasspTFilt_hadhad_v14_ntuple.root']
+bkg_file_paths = [path + pattern for pattern in [
+    '/user.agarabag*JZ0_v2*.root', '/user.agarabag*JZ1_v2*.root', '/user.agarabag*JZ2_v2*.root', 
+    '/user.agarabag*JZ3_v2*.root', '/user.agarabag*JZ4_v2*.root', '/user.agarabag*JZ5_v2*.root', 
+    '/user.agarabag*JZ6_v2*.root', '/user.agarabag*JZ7_v2*.root', '/user.agarabag*JZ8_v2*.root', 
+    '/user.agarabag*JZ9incl_v2*.root']]
 signal_file_paths = [path + '/user.agarabag.VHTauTauOmni.802168.Py8EG_A14NNPDF23LO_VHtautau_flatmasspTFilt_hadhad_v18_ntuple.root']
-
-#xs_ids = [801165, 801166, 801167, 801168, 801169, 801170, 801171, 801172, 801173, 801174, 802168] #last one is signal
-xs_ids = [802168] #last one is signal
-
+xs_ids = [801165, 801166, 801167, 801168, 801169, 801170, 801171, 801172, 801173, 801174, 802168] #last one is signal
 
 # Combine background and signal file paths
-# file_paths = bkg_file_paths + signal_file_paths
-# labels = [0] * len(bkg_file_paths) + [1] * len(signal_file_paths)
-file_paths =  signal_file_paths
-labels = [1] * len(signal_file_paths)
+file_paths = bkg_file_paths + signal_file_paths
+labels = [0] * len(bkg_file_paths) + [1] * len(signal_file_paths)
 
 # Initialize lists to store the data
 jet_data = []
@@ -61,44 +47,6 @@ total_weight = []
 
 # Define maximum number of tracks per event
 MAX_TRACKS = 10  # You may need to adjust this based on your data
-
-
-# def calculate_pt_ratio_log(padded_tracks, padded_jets, MAX_TRACKS, num_track_features):
-#     epsilon = 1e-8
-    
-#     # Extract jet_pt and reshape it to match padded_tracks
-#     jet_pt = padded_jets[:, 0]  # Shape: (batch_size,)
-#     jet_pt = jet_pt[:, np.newaxis, np.newaxis]  # Shape: (batch_size, 1, 1)
-#     jet_pt = np.repeat(jet_pt, MAX_TRACKS, axis=1)  # Shape: (batch_size, MAX_TRACKS, 1)
-    
-#     # We only need to repeat jet_pt for the pt feature, not all track features
-#     # jet_pt shape: (batch_size, MAX_TRACKS, 1)
-    
-#     jet_pt = np.maximum(jet_pt, epsilon)
-    
-#     # Extract track_pt
-#     track_pt = padded_tracks[:, :, 2]  # Shape: (batch_size, MAX_TRACKS)
-    
-#     # Reshape track_pt to match jet_pt
-#     track_pt = track_pt[:, :, np.newaxis]  # Shape: (batch_size, MAX_TRACKS, 1)
-    
-#     # Handle division by zero and track_pt == 0
-#     pt_ratio = np.where((jet_pt != 0) & (track_pt != 0), track_pt / jet_pt, 0.0)
-    
-#     pt_ratio = np.clip(pt_ratio, 0, 1)
-    
-#     pt_ratio_subtracted = np.maximum(1.0 - pt_ratio, epsilon)
-    
-#     pt_ratio_log = np.log(pt_ratio_subtracted)
-    
-#     # Handle NaN and inf
-#     pt_ratio_log = np.nan_to_num(pt_ratio_log, nan=0.0, posinf=0.0, neginf=0.0)
-    
-#     # Reshape back to match the original track_pt shape
-#     pt_ratio_log = pt_ratio_log.reshape(padded_tracks.shape[0], MAX_TRACKS)
-    
-#     return pt_ratio_log
-
 
 for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
     l1 = glob.glob(os.path.join(file_path, '*.root'))
@@ -111,13 +59,17 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
     ditau_pt = []
 
     for file in tqdm(l1, desc="Files"):
+        print("processing file: ", file)
+        f_1 = uproot.open(f"{file}:CollectionTree")
+        # Check if the tree exists and has entries
+        if f_1.num_entries == 0:
+            print(f"File {file} is empty, skipping...")
+            continue
         f_1 = uproot.open(f"{file}:CollectionTree")
         events = f_1.arrays(branches, library='ak')
-        print("processing file: ", file)
         print("# events: ", len(events))
 
-        # event_weights_raw = ak.firsts(events['mcEventWeights'][:, 0, :])
-        event_weights_raw = events['mcEventWeights']
+        event_weights_raw = ak.firsts(events['mcEventWeights'][:, 0, :])
         ditau_pt.append(events['ditau_ditau_pt'])
 
         ## save jet features
@@ -141,7 +93,6 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
             events['ditau_m_core_subl'],
             events['ditau_m_tracks_lead'],
             events['ditau_n_track'],
-            events['omni_score'],
         ]
      
         jet_vars = [ak.to_numpy(var) for var in jet_vars]
@@ -157,12 +108,7 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
             events['numberOfInnermostPixelLayerHits'], 
             events['numberOfPixelHits'], 
             events['numberOfSCTHits'], 
-            events['charge'],
-            events['delta_eta'],
-            events['delta_phi'],
-            events['pt_log'],
-            events['pt_ratio_log'],
-            events['delta_R']
+            events['charge']
         ]
 
         num_track_features = len(track_features)
@@ -184,6 +130,11 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
         jet_eta = np.repeat(jet_eta, num_track_features, axis=2)
         mask = padded_tracks[:, :, 0] != 0
         eta_difference = np.where(mask, padded_tracks[:, :, 0] - jet_eta[:, :, 0], 0)
+        # for i in range(len(eta_difference)):
+        #     if np.any(eta_difference[i] > 1.5):
+        #         print("eta_difference: ", eta_difference[i])
+        #         print("jet_eta: ", jet_eta[i, :, 0])
+        #         print("padded_tracks: ", padded_tracks[i, :, 0])
         padded_tracks[:, :, 0] = eta_difference
 
         #calculate delta_phi
@@ -196,53 +147,51 @@ for idx, (file_path, label) in enumerate(zip(file_paths, labels)):
         phi_difference = np.where(phi_difference > np.pi, phi_difference - 2*np.pi, phi_difference)
         phi_difference = np.where(phi_difference <= -np.pi, phi_difference + 2*np.pi, phi_difference)
         padded_tracks[:, :, 1] = phi_difference
+        # print("PPPPiiii: ", padded_tracks[:, :, 1][0])
 
         epsilon = 1e-8
         jet_pt = padded_jets[:, 0]
         jet_pt = jet_pt[:, np.newaxis, np.newaxis]
         jet_pt = np.repeat(jet_pt, MAX_TRACKS, axis=1)
         jet_pt = np.repeat(jet_pt, num_track_features, axis=2)
-        jet_pt = np.maximum(jet_pt, epsilon)
+        # jet_pt = np.maximum(jet_pt, epsilon)
         mask = padded_tracks[:, :, 2] != 0
         pt_ratio = np.where(mask, padded_tracks[:, :, 2] / jet_pt[:, :, 0], 0)
         pt_ratio = np.nan_to_num(pt_ratio, nan=0.0, posinf=1.0, neginf=0.0)
         pt_ratio_subtracted = np.where(mask, 1 - pt_ratio + epsilon, epsilon)
-        pt_ratio_subtracted = np.maximum(pt_ratio_subtracted, epsilon)
+        # pt_ratio_subtracted = np.maximum(pt_ratio_subtracted, epsilon)
         pt_ratio_log = np.log(pt_ratio_subtracted)
         pt_ratio_log = np.nan_to_num(pt_ratio_log, nan=0.0, posinf=0.0, neginf=0.0)
         pt_ratio_log = np.where(pt_ratio_subtracted == epsilon, 0, pt_ratio_log)
         padded_tracks = np.insert(padded_tracks, 4, pt_ratio_log, axis=2)
-        # pt_ratio_log = calculate_pt_ratio_log(padded_tracks, padded_jets, MAX_TRACKS, num_track_features)
-        # padded_tracks = np.insert(padded_tracks, 4, pt_ratio_log, axis=2)
-        # print("Python log ratio: ", pt_ratio_log[2])
-        # print("C log ratio: ", events['pt_ratio_log'][2])
-        # print("Python pt: ", padded_tracks[:, :, 2][2])
-        # print("C PT: ", padded_jets[:, 0][2])
+        # print("PTPT: ", pt_ratio_log[0])
 
         #calculate deta_R
         deta = padded_tracks[:, :, 0]
         dphi = padded_tracks[:, :, 1]
         dR = np.hypot(deta, dphi)
         padded_tracks = np.insert(padded_tracks, 6, dR, axis=2)
+        # print("DRDR: ", dR)
 
         #take the log of the track pt 
-        padded_tracks[:, :, 2] = np.ma.log(padded_tracks[:, :, 2])
+        # padded_tracks[:, :, 2] = np.ma.log(padded_tracks[:, :, 2] + epsilon)
+        mask = padded_tracks[:, :, 2] != 0
+        padded_tracks[:, :, 2][mask] = np.ma.log(padded_tracks[:, :, 2][mask] + epsilon)
+        # print("PPPPPPP: ", padded_tracks[:, :, 2][0])
 
         jet_data.append(padded_jets)
         track_data.append(padded_tracks)
         pids.append(np.full(len(events), label))
         event_weights.append(event_weights_raw)
-        # event_weight_sum.append(ak.sum(ak.firsts(events['mcEventWeights'])))
-        event_weight_sum.append(ak.sum(events['mcEventWeights']))
+        event_weight_sum.append(ak.sum(ak.firsts(events['mcEventWeights'])))
 
-    event_weights_norm = ak.to_numpy(ak.concatenate(event_weights)/ak.sum(event_weight_sum)).flatten()
+    event_weights_norm = ak.to_numpy(ak.concatenate(event_weights)/ak.sum(event_weight_sum))
     # pt_bins = np.linspace(200000, 1000000, 41)
     pt_numpy = ak.to_numpy(ak.concatenate(ditau_pt)).flatten()
     pt_bins = np.linspace(pt_numpy.min(), pt_numpy.max(), 41)
     # pt_flattening_weights = flattened_pt(pt_numpy, pt_bins)
     pt_flattening_weights = flattened_pt_weighted(pt_numpy, pt_bins, event_weights_norm)
     total_weight.append(event_weights_norm * getXS(xs_ids[idx]) * pt_flattening_weights)
-    # total_weight.append(pt_flattening_weights)
 
 
 # Convert lists to numpy arrays
@@ -278,9 +227,9 @@ val_jet, val_track, val_pid, val_weigts = jet_data[val_indices], track_data[val_
 test_jet, test_track, test_pid, test_weigts = jet_data[test_indices], track_data[test_indices], pids[test_indices], weigts[test_indices]
 
 #take out jet_data elemts 0, 1, 2, 3
-# train_jet = train_jet[:, 3:] #use 4 if don't want to save event id's
-# val_jet = val_jet[:, 3:]
-# test_jet = test_jet[:, 3:]
+train_jet = train_jet[:, 3:] #use 4 if you don't want to save event id's
+val_jet = val_jet[:, 3:]
+test_jet = test_jet[:, 3:]
     
 print("Jet Train data shape: ", train_jet.shape)
 print("Track Train data shape: ", train_track.shape)
@@ -288,7 +237,7 @@ print("PIDs Train shape: ", train_pid.shape)
 print("Weights Train shape: ", train_weigts.shape)
 
 # Write to H5 files
-output_dir = '/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn_onnx/'
+output_dir = '/global/homes/a/agarabag/pscratch/ditdau_samples/samples_for_gnn_onnx/for_training/'
 
 with h5py.File(os.path.join(output_dir, 'train_tau.h5'), 'w') as train_file:
     train_file.create_dataset('data', data=train_track)
