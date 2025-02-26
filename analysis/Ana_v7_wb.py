@@ -325,32 +325,44 @@ def met_centrality(lead_jet_phi, sublead_jet_phi, met_phi):
     return centrality
 
 def Var(t):
-    leadsubjet_p4 = vector.obj(px=t['ditau_obj_leadsubjet_p4'].fP.fX,
-                               py=t['ditau_obj_leadsubjet_p4'].fP.fY,
-                               pz=t['ditau_obj_leadsubjet_p4'].fP.fZ,
-                               energy=t['ditau_obj_leadsubjet_p4'].fE)
-    subleadsubjet_p4 = vector.obj(px=t['ditau_obj_subleadsubjet_p4'].fP.fX,
-                                  py=t['ditau_obj_subleadsubjet_p4'].fP.fY,
-                                  pz=t['ditau_obj_subleadsubjet_p4'].fP.fZ,
-                                  energy=t['ditau_obj_subleadsubjet_p4'].fE)
-    ditau_p4 = vector.obj(px=t['ditau_obj_p4'].fP.fX,
-                          py=t['ditau_obj_p4'].fP.fY,
-                          pz=t['ditau_obj_p4'].fP.fZ,
-                          energy=t['ditau_obj_p4'].fE)
-    delta_phi = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaphi(vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta))
-    delta_eta = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaeta(vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta))
-    delta_R = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaR(vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta))
+    leadsubjet_p4 = vector.zip(
+        {
+        'px': t['ditau_obj_leadsubjet_p4'].fP.fX,
+        'py':t['ditau_obj_leadsubjet_p4'].fP.fY,
+        'pz':t['ditau_obj_leadsubjet_p4'].fP.fZ,
+        'energy':t['ditau_obj_leadsubjet_p4'].fE
+        }
+    )
+    subleadsubjet_p4 = vector.zip(
+        {
+        'px':t['ditau_obj_subleadsubjet_p4'].fP.fX,
+        'py':t['ditau_obj_subleadsubjet_p4'].fP.fY,
+        'pz':t['ditau_obj_subleadsubjet_p4'].fP.fZ,
+        'energy':t['ditau_obj_subleadsubjet_p4'].fE
+        }
+    )
+    ditau_p4 = vector.zip(
+        {
+        'px':t['ditau_obj_p4'].fP.fX,
+        'py':t['ditau_obj_p4'].fP.fY,
+        'pz':t['ditau_obj_p4'].fP.fZ,
+        'energy':t['ditau_obj_p4'].fE
+        }
+    )
+    delta_phi = leadsubjet_p4.deltaphi(subleadsubjet_p4)
+    delta_eta = leadsubjet_p4.deltaeta(subleadsubjet_p4)
+    delta_R = leadsubjet_p4.deltaR(subleadsubjet_p4)
     k_t = delta_R*subleadsubjet_p4.pt
     kappa = delta_R*(subleadsubjet_p4.pt/(subleadsubjet_p4.pt+leadsubjet_p4.pt))
     
-    delta_R_lead = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaR(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_eta_lead = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaeta(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_phi_lead = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaphi(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
+    delta_R_lead = leadsubjet_p4.deltaR(ditau_p4)
+    delta_eta_lead = leadsubjet_p4.deltaeta(ditau_p4)
+    delta_phi_lead = leadsubjet_p4.deltaphi(ditau_p4)
     e_ratio_lead = leadsubjet_p4.energy/ditau_p4.energy
 
-    delta_R_sublead = vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta).deltaR(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_eta_sublead = vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta).deltaeta(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_phi_sublead = vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta).deltaphi(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
+    delta_R_sublead = subleadsubjet_p4.deltaR(ditau_p4)
+    delta_eta_sublead = subleadsubjet_p4.deltaeta(ditau_p4)
+    delta_phi_sublead = subleadsubjet_p4.deltaphi(ditau_p4)
     e_ratio_sublead = subleadsubjet_p4.energy/ditau_p4.energy
 
     event_id = t['event_number']
@@ -361,9 +373,15 @@ def Var(t):
     visible_ditau_m = (leadsubjet_p4 + subleadsubjet_p4).mass    
 
     #caulate missing pt
-    met_2d = vector.obj(px=t['met_hpto_p4'].fP.fX, py=t['met_hpto_p4'].fP.fY)  
-    # met_2d_truth = vector.obj(px=t['met_truth_p4'].fP.fX, py=t['met_truth_p4'].fP.fY)  
-    met_pt = np.sqrt(met_2d.px**2 + met_2d.py**2)
+    met_2d = vector.zip(
+        {
+        'px': t['met_hpto_p4'].fP.fX, 
+        'py': t['met_hpto_p4'].fP.fY,
+        'pz': t['met_hpto_p4'].fP.fZ,
+        'energy': t['met_hpto_p4'].fE
+        }
+    ) 
+    met_pt = met_2d.pt
     met_phi = met_2d.phi
     ######
     k1 = leadsubjet_p4
@@ -374,7 +392,7 @@ def Var(t):
     ######
 
     #delta phi between met and ditau
-    delta_phi_met_ditau = vector.obj(pt=met_pt, phi=met_phi, eta=0).deltaphi(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
+    delta_phi_met_ditau = met_2d.deltaphi(ditau_p4)
 
     met_sig = met_pt / 1000.0 / 0.5 / np.sqrt(t['met_sumet'] / 1000.0)
     
@@ -389,6 +407,98 @@ def Var(t):
             delta_R_lead, delta_eta_lead, delta_phi_lead, delta_R_sublead, delta_eta_sublead, delta_phi_sublead,
             met_centrality_val, t.ditau_obj_omni_score, t.ditau_obj_leadsubjet_charge, t.ditau_obj_subleadsubjet_charge, 
             t.ditau_obj_leadsubjet_n_core_tracks, t.ditau_obj_subleadsubjet_n_core_tracks, e_ratio_lead, e_ratio_sublead,
+            higgs_pt, leadsubjet_p4.eta, subleadsubjet_p4.eta, ditau_p4.eta, delta_phi_met_ditau]
+
+def Data_Var(t):
+    leadsubjet_p4 = vector.zip(
+        {
+        'px': t['ditau_obj_leadsubjet_p4'].fP.fX,
+        'py':t['ditau_obj_leadsubjet_p4'].fP.fY,
+        'pz':t['ditau_obj_leadsubjet_p4'].fP.fZ,
+        'energy':t['ditau_obj_leadsubjet_p4'].fE
+        }
+    )
+    subleadsubjet_p4 = vector.zip(
+        {
+        'px':t['ditau_obj_subleadsubjet_p4'].fP.fX,
+        'py':t['ditau_obj_subleadsubjet_p4'].fP.fY,
+        'pz':t['ditau_obj_subleadsubjet_p4'].fP.fZ,
+        'energy':t['ditau_obj_subleadsubjet_p4'].fE
+        }
+    )
+    ditau_p4 = vector.zip(
+        {
+        'px':t['ditau_obj_p4'].fP.fX,
+        'py':t['ditau_obj_p4'].fP.fY,
+        'pz':t['ditau_obj_p4'].fP.fZ,
+        'energy':t['ditau_obj_p4'].fE
+        }
+    )
+    delta_phi = leadsubjet_p4.deltaphi(subleadsubjet_p4)
+    delta_eta = leadsubjet_p4.deltaeta(subleadsubjet_p4)
+    delta_R = leadsubjet_p4.deltaR(subleadsubjet_p4)
+    k_t = delta_R*subleadsubjet_p4.pt
+    kappa = delta_R*(subleadsubjet_p4.pt/(subleadsubjet_p4.pt+leadsubjet_p4.pt))
+    
+    delta_R_lead = leadsubjet_p4.deltaR(ditau_p4)
+    delta_eta_lead = leadsubjet_p4.deltaeta(ditau_p4)
+    delta_phi_lead = leadsubjet_p4.deltaphi(ditau_p4)
+    e_ratio_lead = leadsubjet_p4.energy/ditau_p4.energy
+
+    delta_R_sublead = subleadsubjet_p4.deltaR(ditau_p4)
+    delta_eta_sublead = subleadsubjet_p4.deltaeta(ditau_p4)
+    delta_phi_sublead = subleadsubjet_p4.deltaphi(ditau_p4)
+    e_ratio_sublead = subleadsubjet_p4.energy/ditau_p4.energy
+
+    visible_ditau_m = (leadsubjet_p4 + subleadsubjet_p4).mass    
+
+    event_id = t['event_number']
+    
+    ######
+    histograms = load_histograms("/home/agarabag/ditau_analysis/boom/data/fake_factors/FF_hadhad_ratio_3d.root")
+
+    leadNTracks = np.array(t.ditau_obj_subleadsubjet_n_core_tracks)
+    subleadNTracks = np.array(t.ditau_obj_leadsubjet_n_core_tracks)
+    lead_pt = np.array(leadsubjet_p4.pt)
+    sublead_pt = np.array(subleadsubjet_p4.pt)
+    delta_r = np.array(delta_R)
+    fake_factor = fake_factor_calc(leadNTracks, subleadNTracks, lead_pt, sublead_pt, delta_r, histograms) ###3d
+    # fake_factor = fake_factor_calc(leadNTracks, subleadNTracks, sublead_pt, delta_r, histograms) ###2d
+
+    ######
+    ######
+    met_2d = vector.zip(
+        {
+        'px': t['met_hpto_p4'].fP.fX, 
+        'py': t['met_hpto_p4'].fP.fY,
+        'pz': t['met_hpto_p4'].fP.fZ,
+        'energy': t['met_hpto_p4'].fE
+        }
+    ) 
+    met_pt = met_2d.pt
+    met_phi = met_2d.phi
+    k1 = leadsubjet_p4
+    k2 = subleadsubjet_p4
+    metetx = met_2d.px
+    metety = met_2d.py
+    collinear_mass, x1, x2 = collinear_mass_calc(k1, k2, metetx, metety)
+    ######
+
+    #delta phi between met and ditau
+    delta_phi_met_ditau = met_2d.deltaphi(ditau_p4)
+
+    met_sig = met_pt / 1000.0 / 0.5 / np.sqrt(t['met_sumet'] / 1000.0)
+
+    combined_weights = np.ones(len(t['ditau_obj_leadsubjet_p4'].fP.fX))
+
+    met_centrality_val = met_centrality(leadsubjet_p4.phi, subleadsubjet_p4.phi, met_phi)
+
+    higgs_pt = (met_2d + ditau_p4).pt
+
+    return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, 
+            delta_R_lead, delta_eta_lead, delta_phi_lead, delta_R_sublead, delta_eta_sublead, delta_phi_sublead,
+            met_centrality_val, t.ditau_obj_omni_score, t.ditau_obj_leadsubjet_charge, t.ditau_obj_subleadsubjet_charge, t.ditau_obj_leadsubjet_n_core_tracks, 
+            t.ditau_obj_subleadsubjet_n_core_tracks, e_ratio_lead, e_ratio_sublead,
             higgs_pt, leadsubjet_p4.eta, subleadsubjet_p4.eta, ditau_p4.eta, delta_phi_met_ditau]
 
 def Data_Var(t):
@@ -465,9 +575,7 @@ def Data_Var(t):
             higgs_pt, leadsubjet_p4.eta, subleadsubjet_p4.eta, ditau_p4.eta, delta_phi_met_ditau]
 
 def cut_x1_x2(t):
-    #cut_mask = np.where((np.array(t[6]) > -2.) & (np.array(t[6]) < 2.) & (np.array(t[7]) > -2.) & (np.array(t[7]) < 2.) & (np.array(t[16]) > 0.))[0]
-    # cut_mask = np.where((np.array(t[6]) > 0) & (np.array(t[7]) > 0) & (np.array(t[6]) < 2.5) & (np.array(t[7]) < 2.5) & (np.array(t[16]) > 0.))[0]
-    cut_mask = np.where((np.array(t[6]) > 0) & (np.array(t[7]) > 0) & (np.array(t[16]) > 0) & (np.array(t[1]) > 50) & (np.array(t[2]) > 15))[0]
+    cut_mask = np.where((np.array(t[6]) > 0) & (np.array(t[7]) > 0) & (np.array(t[6]) < 2) & (np.array(t[7]) < 2) & (np.array(t[16]) > 0) & (np.array(t[1]) > 50) & (np.array(t[2]) > 15))[0]
     filtered_t = [np.array(arr)[cut_mask] for arr in t]
     return filtered_t
 
