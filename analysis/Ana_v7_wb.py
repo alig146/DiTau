@@ -17,7 +17,7 @@ import pickle
 
 
 
-ditau_id_cut = 0.999973
+ditau_id_cut = 0.9994
 
 def data_Cut(t, year):
     # Define HLT conditions based on the year
@@ -257,17 +257,18 @@ def load_histograms(root_file):
     """Load 3D fake factor histograms"""
     file = uproot.open(root_file)
     histograms = {
-        "h_ff_1p1p": file["2D_FF_1p1p"].to_hist(),  # Assuming these are the 3D histogram names
-        "h_ff_1p3p": file["2D_FF_1p3p"].to_hist(),
-        "h_ff_3p3p": file["2D_FF_3p3p"].to_hist()
+        "h_ff_1p1p": file["3D_FF_1p1p"].to_hist(),  # Assuming these are the 3D histogram names
+        "h_ff_1p3p": file["3D_FF_1p3p"].to_hist(),
+        "h_ff_3p3p": file["3D_FF_3p3p"].to_hist()
     }
     return histograms
 
-def fake_factor_calc(leadNTracks, subleadNTracks, sublead_pt, delta_r, histograms):
+def fake_factor_calc(leadNTracks, subleadNTracks, lead_pt, sublead_pt, delta_r, histograms):
     """Calculate fake factors using 3D histograms with axes: (delta_r, lead_pt, sublead_pt)"""
     weights = []
     
-    for lead, sublead, s_pt, dr in zip(leadNTracks, subleadNTracks, sublead_pt, delta_r):
+    for lead, sublead, l_pt, s_pt, dr in zip(leadNTracks, subleadNTracks, 
+                                            lead_pt, sublead_pt, delta_r):
         prongness = determine_prong(lead, sublead)
         weight = 0
         
@@ -276,27 +277,30 @@ def fake_factor_calc(leadNTracks, subleadNTracks, sublead_pt, delta_r, histogram
                 hist = histograms["h_ff_1p1p"]
                 # Reordered indices to match histogram structure
                 delta_r_idx = hist.axes[0].index(dr)
-                sublead_idx = hist.axes[1].index(s_pt)
-                weight = hist.values()[delta_r_idx, sublead_idx]
+                lead_idx = hist.axes[1].index(l_pt)
+                sublead_idx = hist.axes[2].index(s_pt)
+                weight = hist.values()[delta_r_idx, lead_idx, sublead_idx]
                 
             elif prongness == 2:
                 hist = histograms["h_ff_1p3p"]
                 delta_r_idx = hist.axes[0].index(dr)
-                sublead_idx = hist.axes[1].index(s_pt)
-                weight = hist.values()[delta_r_idx, sublead_idx]
+                lead_idx = hist.axes[1].index(l_pt)
+                sublead_idx = hist.axes[2].index(s_pt)
+                weight = hist.values()[delta_r_idx, lead_idx, sublead_idx]
                 
             elif prongness == 3:
                 hist = histograms["h_ff_3p3p"]
                 delta_r_idx = hist.axes[0].index(dr)
-                sublead_idx = hist.axes[1].index(s_pt)
-                weight = hist.values()[delta_r_idx, sublead_idx]
+                lead_idx = hist.axes[1].index(l_pt)
+                sublead_idx = hist.axes[2].index(s_pt)
+                weight = hist.values()[delta_r_idx, lead_idx, sublead_idx]
                 
             else:
                 print(f"Warning: Invalid prongness value: {prongness}")
                 weight = -888
                 
         except IndexError:
-            print(f"Warning: Value out of histogram bounds: delta_r={dr}, sublead_pt={s_pt}")
+            print(f"Warning: Value out of histogram bounds: delta_r={dr}, lead_pt={l_pt}, sublead_pt={s_pt}")
             weight = -999
 
         if weight < 0:
@@ -455,7 +459,7 @@ def Data_Var(t):
     event_id = t['event_number']
     
     ######
-    histograms = load_histograms("/home/agarabag/ditau_analysis/boom/data/fake_factors/FF_hadhad_ratio_3d.root")
+    histograms = load_histograms("./FF_hadhad_ratio_3d.root")
 
     leadNTracks = np.array(t.ditau_obj_subleadsubjet_n_core_tracks)
     subleadNTracks = np.array(t.ditau_obj_leadsubjet_n_core_tracks)
@@ -486,79 +490,6 @@ def Data_Var(t):
 
     #delta phi between met and ditau
     delta_phi_met_ditau = met_2d.deltaphi(ditau_p4)
-
-    met_sig = met_pt / 1000.0 / 0.5 / np.sqrt(t['met_sumet'] / 1000.0)
-
-    combined_weights = np.ones(len(t['ditau_obj_leadsubjet_p4'].fP.fX))
-
-    met_centrality_val = met_centrality(leadsubjet_p4.phi, subleadsubjet_p4.phi, met_phi)
-
-    higgs_pt = (met_2d + ditau_p4).pt
-
-    return [ditau_p4.pt, leadsubjet_p4.pt, subleadsubjet_p4.pt, visible_ditau_m, met_pt, collinear_mass, x1, x2, met_sig, met_phi, event_id, k_t, kappa, delta_R, delta_phi, delta_eta, combined_weights, fake_factor, 
-            delta_R_lead, delta_eta_lead, delta_phi_lead, delta_R_sublead, delta_eta_sublead, delta_phi_sublead,
-            met_centrality_val, t.ditau_obj_omni_score, t.ditau_obj_leadsubjet_charge, t.ditau_obj_subleadsubjet_charge, t.ditau_obj_leadsubjet_n_core_tracks, 
-            t.ditau_obj_subleadsubjet_n_core_tracks, e_ratio_lead, e_ratio_sublead,
-            higgs_pt, leadsubjet_p4.eta, subleadsubjet_p4.eta, ditau_p4.eta, delta_phi_met_ditau]
-
-def Data_Var(t):
-    leadsubjet_p4 = vector.obj(px=t['ditau_obj_leadsubjet_p4'].fP.fX,
-                           py=t['ditau_obj_leadsubjet_p4'].fP.fY,
-                           pz=t['ditau_obj_leadsubjet_p4'].fP.fZ,
-                           energy=t['ditau_obj_leadsubjet_p4'].fE)                           
-    subleadsubjet_p4 = vector.obj(px=t['ditau_obj_subleadsubjet_p4'].fP.fX,
-                           py=t['ditau_obj_subleadsubjet_p4'].fP.fY,
-                           pz=t['ditau_obj_subleadsubjet_p4'].fP.fZ,
-                           energy=t['ditau_obj_subleadsubjet_p4'].fE)
-    ditau_p4 = vector.obj(px=t['ditau_obj_p4'].fP.fX,
-                          py=t['ditau_obj_p4'].fP.fY,
-                          pz=t['ditau_obj_p4'].fP.fZ,
-                          energy=t['ditau_obj_p4'].fE)
-                          
-    delta_R = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaR(vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta))
-    delta_phi = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaphi(vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta))
-    delta_eta = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaeta(vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta))
-    k_t = delta_R*subleadsubjet_p4.pt
-    kappa = delta_R*(subleadsubjet_p4.pt/(subleadsubjet_p4.pt+leadsubjet_p4.pt))
-    # visible_ditau_m = t['ditau_obj_mvis_recalc']  
-    visible_ditau_m = (leadsubjet_p4 + subleadsubjet_p4).mass 
-
-    delta_R_lead = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaR(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_eta_lead = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaeta(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_phi_lead = vector.obj(pt=leadsubjet_p4.pt, phi=leadsubjet_p4.phi, eta=leadsubjet_p4.eta).deltaphi(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    e_ratio_lead = leadsubjet_p4.energy/ditau_p4.energy
-
-    delta_R_sublead = vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta).deltaR(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_eta_sublead = vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta).deltaeta(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    delta_phi_sublead = vector.obj(pt=subleadsubjet_p4.pt, phi=subleadsubjet_p4.phi, eta=subleadsubjet_p4.eta).deltaphi(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
-    e_ratio_sublead = subleadsubjet_p4.energy/ditau_p4.energy
-
-    met_2d = vector.obj(px=t['met_hpto_p4'].fP.fX, py=t['met_hpto_p4'].fP.fY)  
-    met_pt = np.sqrt(met_2d.px**2 + met_2d.py**2)
-    met_phi = met_2d.phi
-
-    event_id = t['event_number']
-    ######
-    histograms = load_histograms("FF_hadhad_ratio_2d_wp999973.root")
-    leadNTracks = np.array(t.ditau_obj_subleadsubjet_n_core_tracks)
-    subleadNTracks = np.array(t.ditau_obj_leadsubjet_n_core_tracks)
-    lead_pt = np.array(leadsubjet_p4.pt)
-    sublead_pt = np.array(subleadsubjet_p4.pt)
-    delta_r = np.array(delta_R)
-    #fake_factor = fake_factor_calc(leadNTracks, subleadNTracks, lead_pt, sublead_pt, delta_r, histograms) ###3d
-    fake_factor = fake_factor_calc(leadNTracks, subleadNTracks, sublead_pt, delta_r, histograms) ###2d
-
-    ######
-    ######
-    k1 = leadsubjet_p4
-    k2 = subleadsubjet_p4
-    metetx = met_2d.px
-    metety = met_2d.py
-    collinear_mass, x1, x2 = collinear_mass_calc(k1, k2, metetx, metety)
-    ######
-
-    #delta phi between met and ditau
-    delta_phi_met_ditau = vector.obj(pt=met_pt, phi=met_phi, eta=0).deltaphi(vector.obj(pt=ditau_p4.pt, phi=ditau_p4.phi, eta=ditau_p4.eta))
 
     met_sig = met_pt / 1000.0 / 0.5 / np.sqrt(t['met_sumet'] / 1000.0)
 
@@ -664,7 +595,7 @@ zll_plot['sample_type'] = 'zll'
 data_plot['sample_type'] = 'data'
 
 
-df = pd.concat([data_plot, ggh_plot, vbfh_plot, wh_plot, zh_plot, tth_plot, vv_plot, top_plot, ztt_plot, ttv_plot, w_plot, zll_plot])
+df = pd.concat([ggh_plot, vbfh_plot, wh_plot, zh_plot, tth_plot, vv_plot, top_plot, ztt_plot, ttv_plot, w_plot, zll_plot])
 
 training_var = [
     'ditau_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m',
@@ -693,12 +624,13 @@ df_split = split_data(df)
 
 sweep_config = {
     'method': 'random', 
-    'name': 'NewditauBDTSW2',
+    'name': 'NewditauBDTSW3',
     'metric': {'name': 'significance', 'goal': 'maximize'},
     'parameters': {
         'learning_rate': {'min': 0.004, 'max': 0.08},
         'max_depth': {'min': 2, 'max': 6},
         'n_estimators': {'min': 50, 'max': 300},
+        'scaling_factor': {'values': [1, 2]}  
     }
 }
 
@@ -755,10 +687,10 @@ def train():
         }
         
         model = XGBClassifier(**params)
-        model.fit(X_train, y_train, sample_weight=ff_train * evnt_w_train)
+        model.fit(X_train, y_train, sample_weight=ff_train * evnt_w_train * config.scaling_factor)
 
         y_pred_proba = model.predict_proba(X_test)
-        log_loss_val = log_loss(y_test, y_pred_proba, sample_weight=ff_test * evnt_w_test)
+        log_loss_val = log_loss(y_test, y_pred_proba, sample_weight=ff_test * evnt_w_test * config.scaling_factor)
         log_losses.append(log_loss_val)
 
         signal_scores.extend(y_pred_proba[:, 1][y_test == 1])
