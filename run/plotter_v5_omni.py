@@ -66,10 +66,10 @@ def plotter():
     
     combined_bkg = combined_bkg[combined_bkg['omni_probs']>0]
     combined_signal = combined_signal[combined_signal['omni_probs']>0]
-    # combined_bkg_bdt = combined_bkg[combined_bkg['omni_probs'] > 0.492]
-    # combined_signal_bdt = combined_signal[combined_signal['omni_probs'] > 0.492]
-    combined_bkg_bdt = combined_bkg[combined_bkg['omni_probs'] > 0.999] #was 0.87
-    combined_signal_bdt = combined_signal[combined_signal['omni_probs'] > 0.999] #was 0.87
+    combined_bkg_bdt = combined_bkg[combined_bkg['omni_probs'] > 0.492]
+    combined_signal_bdt = combined_signal[combined_signal['omni_probs'] > 0.492]
+    # combined_bkg_bdt = combined_bkg[combined_bkg['omni_probs'] > 0.999] #was 0.87
+    # combined_signal_bdt = combined_signal[combined_signal['omni_probs'] > 0.999] #was 0.87
 
     cuts_processor = DataFrameCuts(combined_bkg, combined_signal)
     combined = cuts_processor.process()
@@ -97,10 +97,10 @@ def plotter():
     #for bdt
     combined_bkg_mva = combined_bkg[combined_bkg['bdt_score_new']>0]
     combined_signal_mva = combined_signal[combined_signal['bdt_score_new']>0]
-    # combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score_new'] > 0.581]
-    # combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score_new'] > 0.581]
-    combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score_new'] > 0.994]
-    combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score_new'] > 0.994]
+    combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score_new'] > 0.581]
+    combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score_new'] > 0.581]
+    # combined_bkg_bdt_mva = combined_bkg[combined_bkg['bdt_score_new'] > 0.994]
+    # combined_signal_bdt_mva = combined_signal[combined_signal['bdt_score_new'] > 0.994]
 
     cuts_processor_mva = DataFrameCuts(combined_bkg_mva, combined_signal_mva)
     combined_mva = cuts_processor_mva.process()
@@ -127,7 +127,7 @@ def plotter():
 
     print(len(combined_bkg_1p3p), len(combined_bkg_1p3p_bdt), len(combined_bkg_1p1p), len(combined_bkg_1p1p_bdt), len(combined_bkg_3p3p), len(combined_bkg_3p3p_bdt), len(combined_bkg_inc), len(combined_bkg_inc_bdt))
 
-    p = PdfPages("roc_curves.pdf") 
+    p = PdfPages("roc_curves.pdf")
 
     fig7 = plt.figure(figsize=(6, 6))
     # for i in range(4):
