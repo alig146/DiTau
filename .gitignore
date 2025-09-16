@@ -4,10 +4,10 @@ __pycache__
 utils-checkpoint.py
 *.pth
 *.onnx
-analysis/ffs/
-run/training_var_plots/
-analysis/wandb/
-analysis/*.h
-analysis/*.root
-analysis/*.pkl
+analysis_mva/ffs/
+ditau_id/training_var_plots/
+analysis_mva/wandb/
+analysis_mva/*.h
+analysis_mva/*.root
+analysis_mva/*.pkl
 *~

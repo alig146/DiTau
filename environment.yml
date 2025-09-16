@@ -495,4 +495,3 @@ dependencies:
       - uproot-browser==0.6.7
       - vector==0.8.5
       - wandb==0.17.4
-prefix: /global/homes/a/agarabag/.conda/envs/ditau
