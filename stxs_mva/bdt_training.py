@@ -39,10 +39,10 @@ class ThreeClassClassifier:
             df.loc[df['label'] == 1, 'combined_weights'] *= vbf_weight
             df.loc[df['label'] == 2, 'combined_weights'] *= ggf_weight
 
-        # Create model feature columns
+        # Create model feature columns (float32 for GPU efficiency)
         for human_name, feat_name in self.feature_mapping.items():
             if human_name in df.columns:
-                df[feat_name] = df[human_name]
+                df[feat_name] = df[human_name].astype('float32')
             else:
                 df[feat_name] = np.nan
         # Drop events with negative or zero combined weights
@@ -237,11 +237,11 @@ def main():
         test_data = test_data[test_data['combined_weights'] > 0]
 
         # Prepare data
-        X_train = train_data[classifier.feature_cols]
+        X_train = train_data[classifier.feature_cols].astype('float32')
         y_train = train_data['label']
         weights_train = (train_data['combined_weights'] * train_data['fake_factor']).astype(float)
         
-        X_test = test_data[classifier.feature_cols]
+        X_test = test_data[classifier.feature_cols].astype('float32')
         y_test = test_data['label']
                 
         print(f"Training samples: {len(X_train)}")

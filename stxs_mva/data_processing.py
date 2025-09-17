@@ -123,6 +123,11 @@ def build_stxs_training_df_run2(mc_pickle_path: str, data_pickle_path: str, save
     # Drop events with non-positive combined weights
     df = df[df['combined_weights'] > 0].reset_index(drop=True)
 
+    # Ensure model feature columns are float32 to reduce memory and I/O
+    for feat_name in FEATURE_MAPPING.values():
+        if feat_name in df.columns:
+            df[feat_name] = df[feat_name].astype('float32')
+
     if save_path:
         df.to_pickle(save_path)
     return df
