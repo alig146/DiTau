@@ -4,7 +4,23 @@ import pickle
 import sys
 sys.path.insert(0, '../')
 from utils import mva_utils
+import argparse
 
+# Shared feature mapping for STXS training
+FEATURE_MAPPING = {
+    'leadsubjet_pt': 'f0',
+    'subleadsubjet_pt': 'f1', 
+    'visible_ditau_m': 'f2',
+    'collinear_mass': 'f3',
+    'delta_R': 'f4',
+    'met': 'f5',
+    'delta_phi_met_ditau': 'f6',
+    'eta_product': 'f7',
+    'delta_eta_jj': 'f8',
+    'Mjj': 'f9',
+    'pt_jj': 'f10',
+    'pt_jj_higgs': 'f11'
+}
 
 def _arrays_to_df(arr_list, label):
     var_names = [
@@ -72,4 +88,79 @@ def load_run2_df_from_pickles(mc_pickle_path: str, data_pickle_path: str) -> pd.
     df = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
     return df
 
+
+
+def build_stxs_training_df_run2(mc_pickle_path: str, data_pickle_path: str, save_path: str | None = None) -> pd.DataFrame:
+    """Return a preprocessed DataFrame for STXS Run 2 training and optionally save it.
+
+    Steps:
+    - Load uncut MC/data pickles
+    - Apply cuts and combine years
+    - Build variables and assemble labeled DataFrame
+    - Create model-ready feature columns (f0..)
+    - Filter out non-positive combined weights
+    - Optionally save to a pickle at save_path
+    """
+    df = load_run2_df_from_pickles(mc_pickle_path, data_pickle_path)
+
+    # Map human-readable feature names to model columns (f0..)
+    for human_name, feat_name in FEATURE_MAPPING.items():
+        if human_name in df.columns:
+            df[feat_name] = df[human_name]
+        else:
+            df[feat_name] = np.nan
+
+    # Drop events with non-positive combined weights
+    df = df[df['combined_weights'] > 0].reset_index(drop=True)
+
+    if save_path:
+        df.to_pickle(save_path)
+    return df
+
+
+def load_stxs_training_df(path: str) -> pd.DataFrame:
+    """Load previously built STXS training DataFrame from pickle."""
+    return pd.read_pickle(path)
+
+
+def _build_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Build and save the preprocessed STXS Run 2 training DataFrame."
+    )
+    parser.add_argument(
+        "--mc", dest="mc_pickle", required=False,
+        default="/pscratch/sd/a/agarabag/ditdau_samples/raw_mc_run2.pkl",
+        help="Path to uncut MC pickle (Run 2)"
+    )
+    parser.add_argument(
+        "--data", dest="data_pickle", required=False,
+        default="/pscratch/sd/a/agarabag/ditdau_samples/raw_data_run2.pkl",
+        help="Path to uncut data pickle (Run 2)"
+    )
+    parser.add_argument(
+        "--out", dest="out_pickle", required=False,
+        default="/pscratch/sd/a/agarabag/ditdau_samples/stxs_training_run2.pkl",
+        help="Output path for preprocessed STXS training pickle"
+    )
+    return parser
+
+
+def main():
+    parser = _build_arg_parser()
+    args = parser.parse_args()
+    print("[STXS] Building preprocessed training DataFrame (Run 2)...")
+    print(f"  MC   : {args.mc_pickle}")
+    print(f"  Data : {args.data_pickle}")
+    print(f"  Out  : {args.out_pickle}")
+
+    df = build_stxs_training_df_run2(
+        mc_pickle_path=args.mc_pickle,
+        data_pickle_path=args.data_pickle,
+        save_path=args.out_pickle,
+    )
+    print(f"[STXS] Done. Rows: {len(df):,}. Saved to: {args.out_pickle}")
+
+
+if __name__ == "__main__":
+    main()
 

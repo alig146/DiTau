@@ -11,36 +11,22 @@ import time
 import sys
 sys.path.insert(0, '../')
 from utils import mva_utils
-from stxs_mva.data_processing import load_run2_df_from_pickles
+from stxs_mva.data_processing import load_stxs_training_df, FEATURE_MAPPING
 
 class ThreeClassClassifier:
     """3-class XGBoost classifier for VBF vs ggF vs Background classification."""
     
     def __init__(self):
         self.model = None
-        self.feature_mapping = {
-            'leadsubjet_pt': 'f0',
-            'subleadsubjet_pt': 'f1', 
-            'visible_ditau_m': 'f2',
-            'collinear_mass': 'f3',
-            'delta_R': 'f4',
-            'met': 'f5',
-            'delta_phi_met_ditau': 'f6',
-            'eta_product': 'f7',
-            'delta_eta_jj': 'f8',
-            'Mjj': 'f9',
-            'pt_jj': 'f10',
-            'pt_jj_higgs': 'f11'
-        }
+        self.feature_mapping = FEATURE_MAPPING
         self.feature_cols = list(self.feature_mapping.values())
         self.class_names = {0: 'Background', 1: 'VBF_H', 2: 'ggF_H'}
         
     def load_and_prepare_data(self):
         """Load DataFrame from pre-built Run 2 pickles (same flow as notebooks)."""
-        # Adjust paths if needed
-        mc_pkl = '/pscratch/sd/a/agarabag/ditdau_samples/raw_mc_run2.pkl'
-        data_pkl = '/pscratch/sd/a/agarabag/ditdau_samples/raw_data_run2.pkl'
-        df = load_run2_df_from_pickles(mc_pkl, data_pkl)
+        # Load preprocessed training DataFrame (built beforehand)
+        preprocessed_path = '/pscratch/sd/a/agarabag/ditdau_samples/stxs_training_run2.pkl'
+        df = load_stxs_training_df(preprocessed_path)
 
         # Class reweighting
         if not df.empty:
