@@ -76,8 +76,8 @@ data_branches = [
     'n_bjets_GN2v01_FixedCutBEff_70'
 ]
 
-path_template_mc = '/global/homes/a/agarabag/pscratch/ditdau_samples/V02/mc/ditau_hh/{year}/nom/user.*.{dsid}.*/user.*.root'
-path_template_data = '/global/homes/a/agarabag/pscratch/ditdau_samples/V02/data/ditau_hh/data{year}/user.*/user.*.root'
+path_template_mc = '/pscratch/sd/a/agarabag/ditdau_samples/V02/mc/ditau_hh/{year}/nom/user.*.{dsid}.*/user.*.root'
+path_template_data = '/pscratch/sd/a/agarabag/ditdau_samples/V02/data/ditau_hh/data{year}/user.*/user.*.root'
 
 calc_vars = ['ditau_pt', 'leadsubjet_pt', 'subleadsubjet_pt', 'visible_ditau_m', 'met', 'collinear_mass', 'x1', 'x2', 'met_sig', 'met_phi', 'event_number', 'k_t', 'kappa', 'delta_R',
              'delta_phi', 'delta_eta', 'combined_weights', 'fake_factor', 'delta_R_lead', 'delta_eta_lead', 'delta_phi_lead', 'delta_R_sublead', 'delta_eta_sublead', 'delta_phi_sublead',
@@ -359,7 +359,7 @@ def save_raw_data(data, data_type='MC'):
         # Fall back to run2 if inspection fails
         run_label = 'run2'
 
-    output_file = f"/global/homes/a/agarabag/pscratch/ditdau_samples/raw_{data_type.lower()}_data_test_{run_label}.pkl"
+    output_file = f"/pscratch/sd/a/agarabag/ditdau_samples/raw_{data_type.lower()}_data_test_{run_label}.pkl"
     with open(output_file, 'wb') as f:
         pickle.dump(data, f)
     return data

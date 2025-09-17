@@ -7,11 +7,11 @@ from sklearn.preprocessing import label_binarize
 from xgboost import XGBClassifier
 import shap
 from itertools import combinations
-import awkward as ak
 import time
 import sys
-sys.path.insert(0, '/global/homes/a/agarabag/DiTau')
+sys.path.insert(0, '../')
 from utils import mva_utils
+from stxs_mva.data_processing import load_run2_df_from_pickles
 
 class ThreeClassClassifier:
     """3-class XGBoost classifier for VBF vs ggF vs Background classification."""
@@ -35,101 +35,14 @@ class ThreeClassClassifier:
         self.feature_cols = list(self.feature_mapping.values())
         self.class_names = {0: 'Background', 1: 'VBF_H', 2: 'ggF_H'}
         
-    def _arrays_to_df(self, arr_list, label):
-        """Convert mva_utils.Var output to DataFrame."""
-        var_names = [
-            'ditau_pt','leadsubjet_pt','subleadsubjet_pt','visible_ditau_m','met','collinear_mass','x1','x2',
-            'met_sig','met_phi','event_number','k_t','kappa','delta_R','delta_phi','delta_eta','combined_weights','fake_factor',
-            'delta_R_lead','delta_eta_lead','delta_phi_lead','delta_R_sublead','delta_eta_sublead','delta_phi_sublead',
-            'met_centrality','omni_score','leadsubjet_charge','subleadsubjet_charge','leadsubjet_n_core_tracks','subleadsubjet_n_core_tracks',
-            'e_ratio_lead','e_ratio_sublead','higgs_pt','leadsubjet_eta','subleadsubjet_eta','ditau_eta','delta_phi_met_ditau',
-            'Ht','eta_product','delta_eta_jj','Mjj','pt_jj','delta_phi_jj','pt_jj_higgs','delta_r_leadjet_ditau','leading_jet_pt','subleading_jet_pt'
-        ]
-        
-        data = {}
-        for name, arr in zip(var_names, arr_list):
-            try:
-                if hasattr(arr, 'to_numpy'):
-                    data[name] = arr.to_numpy()
-                elif isinstance(arr, ak.Array):
-                    data[name] = ak.to_numpy(arr)
-                else:
-                    data[name] = np.array(arr)
-            except Exception:
-                data[name] = np.array(arr)
-        
-        df = pd.DataFrame(data)
-        df['label'] = label
-        return df
-
     def load_and_prepare_data(self):
-        """Load Run 2 samples with the same flow as the notebook: apply_cuts -> combine -> Var/Data_Var."""
-        include_vbf = True
-        cfg_run2 = mva_utils.get_config('run2')
+        """Load DataFrame from pre-built Run 2 pickles (same flow as notebooks)."""
+        # Adjust paths if needed
+        mc_pkl = '/pscratch/sd/a/agarabag/ditdau_samples/raw_mc_run2.pkl'
+        data_pkl = '/pscratch/sd/a/agarabag/ditdau_samples/raw_data_run2.pkl'
+        df = load_run2_df_from_pickles(mc_pkl, data_pkl)
 
-        # Define DSID groups (Run 2)
-        ggH = mva_utils.ggH
-        VBFH = mva_utils.VBFH
-        background_groups = {
-            'Ztt_inc': mva_utils.Ztt_inc,
-            'ttV': mva_utils.ttV,
-            'VV': mva_utils.VV,
-            'Top': mva_utils.Top,
-            'W': mva_utils.W,
-            'Zll_inc': mva_utils.Zll_inc,
-        }
-
-        # Datasets and year suffixes
-        datasets = [('mc20a','15','a'), ('mc20d','17','d'), ('mc20e','18','e')]
-
-        # 1) Build uncut MC payload per dataset key
-        uncut_mc = {ds_key: {} for ds_key, _, _ in datasets}
-        for ds_key, year, suffix in datasets:
-            # Weights per DSID for this year
-            sig_ws = {**mva_utils.fetch_weights(ggH, year), **mva_utils.fetch_weights(VBFH, year)}
-            if ggH:
-                uncut_mc[ds_key][f'ggH_{suffix}'] = mva_utils.read_root(ggH, sig_ws, year_id=ds_key, year=year, is_signal=True, config=cfg_run2)
-            if VBFH:
-                uncut_mc[ds_key][f'VBFH_{suffix}'] = mva_utils.read_root(VBFH, sig_ws, year_id=ds_key, year=year, is_signal=True, config=cfg_run2)
-            for name, dsids in background_groups.items():
-                if dsids:
-                    ws = mva_utils.fetch_weights(dsids, year)
-                    uncut_mc[ds_key][f'{name}_{suffix}'] = mva_utils.read_root(dsids, ws, year_id=ds_key, year=year, is_signal=False, config=cfg_run2)
-
-        # 2) Apply cuts and combine across years
-        cut_mc = mva_utils.apply_cuts(uncut_mc, data_type='MC', config=cfg_run2)
-        combined_mc = mva_utils.combine_mc_years(cut_mc)
-
-        # 3) Data path mirrors the notebook
-        uncut_data = {
-            'data_15': mva_utils.read_data_root(year='15', config=cfg_run2),
-            'data_16': mva_utils.read_data_root(year='16', config=cfg_run2),
-            'data_17': mva_utils.read_data_root(year='17', config=cfg_run2),
-            'data_18': mva_utils.read_data_root(year='18', config=cfg_run2),
-        }
-        cut_data = mva_utils.apply_cuts(uncut_data, data_type='data', config=cfg_run2)
-        combined_data = mva_utils.combine_data_years(cut_data)
-
-        # 4) Assemble DataFrame from variables
-        dfs = []
-        if 'ggH' in combined_mc:
-            var_ggh = mva_utils.Var(combined_mc['ggH'], include_vbf=include_vbf)
-            dfs.append(self._arrays_to_df(var_ggh, label=2))
-        if 'VBFH' in combined_mc:
-            var_vbf = mva_utils.Var(combined_mc['VBFH'], include_vbf=include_vbf)
-            dfs.append(self._arrays_to_df(var_vbf, label=1))
-        for key, arr in combined_mc.items():
-            if key in ['ggH', 'VBFH']:
-                continue
-            var_bkg = mva_utils.Var(arr, include_vbf=include_vbf)
-            dfs.append(self._arrays_to_df(var_bkg, label=0))
-        if len(combined_data) > 0:
-            var_data = mva_utils.Data_Var(combined_data, include_vbf=include_vbf)
-            dfs.append(self._arrays_to_df(var_data, label=0))
-
-        df = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-
-        # 5) Class reweighting
+        # Class reweighting
         if not df.empty:
             bg_count = len(df[df['label'] == 0]) * 2
             vbf_count = max(len(df[df['label'] == 1]), 1)
@@ -140,12 +53,16 @@ class ThreeClassClassifier:
             df.loc[df['label'] == 1, 'combined_weights'] *= vbf_weight
             df.loc[df['label'] == 2, 'combined_weights'] *= ggf_weight
 
-        # 6) Create model feature columns
+        # Create model feature columns
         for human_name, feat_name in self.feature_mapping.items():
             if human_name in df.columns:
                 df[feat_name] = df[human_name]
             else:
                 df[feat_name] = np.nan
+        # Drop events with negative or zero combined weights
+        before = len(df)
+        df = df[df['combined_weights'] > 0].reset_index(drop=True)
+        print(f"Filtered non-positive weight events: {before - len(df)} removed, {len(df)} remain")
         return df
     
     def split_data_k_fold(self, df, k=3):
@@ -329,10 +246,14 @@ def main():
         test_data = data_splits[i]
         train_data = pd.concat([data_splits[j] for j in range(3) if j != i])
         
+        # Filter out non-positive combined weights in both train and test
+        train_data = train_data[train_data['combined_weights'] > 0]
+        test_data = test_data[test_data['combined_weights'] > 0]
+
         # Prepare data
         X_train = train_data[classifier.feature_cols]
         y_train = train_data['label']
-        weights_train = train_data['combined_weights'] * train_data['fake_factor']
+        weights_train = (train_data['combined_weights'] * train_data['fake_factor']).astype(float)
         
         X_test = test_data[classifier.feature_cols]
         y_test = test_data['label']
