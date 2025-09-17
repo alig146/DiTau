@@ -591,6 +591,28 @@ def met_centrality(lead_jet_phi, sublead_jet_phi, met_phi):
     centrality[valid_indices] = (A + B) / np.sqrt(A * A + B * B)
     return centrality
 
+def CalcMoments(input_vectors):
+    mean = 0
+    rms = 0
+    skewness = 0
+    kurtosis = 0
+    for i in range(len(input_vectors)):
+        mean += input_vectors[i]
+        rms += input_vectors[i]**2
+    mean = mean/len(input_vectors)
+    rms = rms/len(input_vectors)
+    if (rms - mean**2) >= 0:
+        rms = (rms - mean**2)**0.5
+    else:
+        rms = 0
+    for i in range(len(input_vectors)):
+        # Guard against rms==0
+        denom = rms if rms != 0 else 1.0
+        skewness = skewness + ((input_vectors[i]-mean)/denom)**3
+        kurtosis = kurtosis + ((input_vectors[i]-mean)/denom)**4
+    skewness = skewness/len(input_vectors)
+    kurtosis = kurtosis/len(input_vectors)
+    return mean, rms, skewness, kurtosis
 
 def compute_vbf_features(t, leadsubjet_p4, subleadsubjet_p4, ditau_p4, met_2d):
     """Compute VBF-like jet features with ΔR(jet, ditau) > 0.4 selection.
@@ -626,6 +648,113 @@ def compute_vbf_features(t, leadsubjet_p4, subleadsubjet_p4, ditau_p4, met_2d):
     pt_jj_higgs = ak.where(valid_pair, ak.fill_none((leading_jet + subleading_jet + (met_2d + (leadsubjet_p4 + subleadsubjet_p4))).pt, -999), -999)
     delta_r_leadjet_ditau = ak.where(valid_leading, ak.fill_none(leading_jet.deltaR((met_2d + (leadsubjet_p4 + subleadsubjet_p4))), -999), -999)
 
+    # Additional subjet and boost-related features
+    # Delta metrics between subjets and ditau
+    delta_R_lead = leadsubjet_p4.deltaR(ditau_p4)
+    delta_R_sublead = subleadsubjet_p4.deltaR(ditau_p4)
+    delta_eta_lead = leadsubjet_p4.deltaeta(ditau_p4)
+    delta_eta_sublead = subleadsubjet_p4.deltaeta(ditau_p4)
+
+    # Moments of pT subjets (2 elements per event)
+    pT_subjets = np.concatenate((ak.to_numpy(leadsubjet_p4.pt).reshape(-1, 1),
+                                 ak.to_numpy(subleadsubjet_p4.pt).reshape(-1, 1)), axis=1)
+    mean_pT_subjets = np.zeros(len(pT_subjets))
+    rms_pT_subjets = np.zeros(len(pT_subjets))
+    skewness_pT_subjets = np.zeros(len(pT_subjets))
+    kurtosis_pT_subjets = np.zeros(len(pT_subjets))
+    for j in range(len(pT_subjets)):
+        mean, rms, skew, kurt = CalcMoments(pT_subjets[j, :])
+        mean_pT_subjets[j] = mean
+        rms_pT_subjets[j] = rms
+        skewness_pT_subjets[j] = skew
+        kurtosis_pT_subjets[j] = kurt
+    mean_pT_subjets = ak.Array(mean_pT_subjets)
+    rms_pT_subjets = ak.Array(rms_pT_subjets)
+    skewness_pT_subjets = ak.Array(skewness_pT_subjets)
+    kurtosis_pT_subjets = ak.Array(kurtosis_pT_subjets)
+
+    # Moments of dR(subjet, ditau)
+    dR_subjets_ditau = np.concatenate((ak.to_numpy(delta_R_lead).reshape(-1, 1),
+                                       ak.to_numpy(delta_R_sublead).reshape(-1, 1)), axis=1)
+    mean_dR_subjet_ditau = np.zeros(len(dR_subjets_ditau))
+    rms_dR_subjet_ditau = np.zeros(len(dR_subjets_ditau))
+    skewness_dR_subjet_ditau = np.zeros(len(dR_subjets_ditau))
+    kurtosis_dR_subjet_ditau = np.zeros(len(dR_subjets_ditau))
+    for j in range(len(dR_subjets_ditau)):
+        mean, rms, skew, kurt = CalcMoments(dR_subjets_ditau[j, :])
+        mean_dR_subjet_ditau[j] = mean
+        rms_dR_subjet_ditau[j] = rms
+        skewness_dR_subjet_ditau[j] = skew
+        kurtosis_dR_subjet_ditau[j] = kurt
+    mean_dR_subjet_ditau = ak.Array(mean_dR_subjet_ditau)
+    rms_dR_subjet_ditau = ak.Array(rms_dR_subjet_ditau)
+    skewness_dR_subjet_ditau = ak.Array(skewness_dR_subjet_ditau)
+    kurtosis_dR_subjet_ditau = ak.Array(kurtosis_dR_subjet_ditau)
+
+    # Moments of dEta(subjet, ditau)
+    dEta_subjets_ditau = np.concatenate((ak.to_numpy(delta_eta_lead).reshape(-1, 1),
+                                         ak.to_numpy(delta_eta_sublead).reshape(-1, 1)), axis=1)
+    mean_dEta_subjet_ditau = np.zeros(len(dEta_subjets_ditau))
+    rms_dEta_subjet_ditau = np.zeros(len(dEta_subjets_ditau))
+    skewness_dEta_subjet_ditau = np.zeros(len(dEta_subjets_ditau))
+    kurtosis_dEta_subjet_ditau = np.zeros(len(dEta_subjets_ditau))
+    for j in range(len(dEta_subjets_ditau)):
+        mean, rms, skew, kurt = CalcMoments(dEta_subjets_ditau[j, :])
+        mean_dEta_subjet_ditau[j] = mean
+        rms_dEta_subjet_ditau[j] = rms
+        skewness_dEta_subjet_ditau[j] = skew
+        kurtosis_dEta_subjet_ditau[j] = kurt
+    mean_dEta_subjet_ditau = ak.Array(mean_dEta_subjet_ditau)
+    rms_dEta_subjet_ditau = ak.Array(rms_dEta_subjet_ditau)
+    skewness_dEta_subjet_ditau = ak.Array(skewness_dEta_subjet_ditau)
+    kurtosis_dEta_subjet_ditau = ak.Array(kurtosis_dEta_subjet_ditau)
+
+    # Moments of dEta(subjet, MET)
+    delta_eta_lead_MET = met_2d.deltaeta(leadsubjet_p4)
+    delta_eta_sublead_MET = met_2d.deltaeta(subleadsubjet_p4)
+    dEta_subjets_MET = np.concatenate((ak.to_numpy(delta_eta_lead_MET).reshape(-1, 1),
+                                       ak.to_numpy(delta_eta_sublead_MET).reshape(-1, 1)), axis=1)
+    mean_dEta_subjet_MET = np.zeros(len(dEta_subjets_MET))
+    rms_dEta_subjet_MET = np.zeros(len(dEta_subjets_MET))
+    skewness_dEta_subjet_MET = np.zeros(len(dEta_subjets_MET))
+    kurtosis_dEta_subjet_MET = np.zeros(len(dEta_subjets_MET))
+    for j in range(len(dEta_subjets_MET)):
+        mean, rms, skew, kurt = CalcMoments(dEta_subjets_MET[j, :])
+        mean_dEta_subjet_MET[j] = mean
+        rms_dEta_subjet_MET[j] = rms
+        skewness_dEta_subjet_MET[j] = skew
+        kurtosis_dEta_subjet_MET[j] = kurt
+    mean_dEta_subjet_MET = ak.Array(mean_dEta_subjet_MET)
+    rms_dEta_subjet_MET = ak.Array(rms_dEta_subjet_MET)
+    skewness_dEta_subjet_MET = ak.Array(skewness_dEta_subjet_MET)
+    kurtosis_dEta_subjet_MET = ak.Array(kurtosis_dEta_subjet_MET)
+
+    # Boost-related quantities
+    Higgs_lorentz = met_2d + (leadsubjet_p4 + subleadsubjet_p4)
+    Higgs_lorentz_boost = Higgs_lorentz.boostCM_of(Higgs_lorentz)
+    met_boost = met_2d.boostCM_of(Higgs_lorentz)
+    lead_subjet_boost = leadsubjet_p4.boostCM_of(Higgs_lorentz)
+    sublead_subjet_boost = subleadsubjet_p4.boostCM_of(Higgs_lorentz)
+
+    delta_R_lead_boost = lead_subjet_boost.deltaR(Higgs_lorentz_boost)
+    delta_R_sublead_boost = sublead_subjet_boost.deltaR(Higgs_lorentz_boost)
+    delta_R_subjets_boost = lead_subjet_boost.deltaR(sublead_subjet_boost)
+
+    delta_R_met_leadsubjet_boost = lead_subjet_boost.deltaR(met_boost)
+    delta_R_met_subleadsubjet_boost = sublead_subjet_boost.deltaR(met_boost)
+    leadsubjet_pt_boost = lead_subjet_boost.pt
+    subleadsubjet_pt_boost = sublead_subjet_boost.pt
+    met_pt_boost = met_boost.pt
+    subjet_vismass_boost = (lead_subjet_boost + sublead_subjet_boost).mass
+
+    # Leading unique jet relations
+    delta_R_met_leaduniquejet = ak.where(valid_leading, ak.fill_none(leading_jet.deltaR(met_2d), -999), -999)
+    delta_R_leadsubjet_leaduniquejet = ak.where(valid_leading, ak.fill_none(leading_jet.deltaR(leadsubjet_p4), -999), -999)
+    delta_R_subleadsubjet_leaduniquejet = ak.where(valid_leading, ak.fill_none(leading_jet.deltaR(subleadsubjet_p4), -999), -999)
+    delta_R_met_leaduniquejet_boost = ak.where(valid_leading, ak.fill_none((leading_jet.boostCM_of(Higgs_lorentz)).deltaR(met_boost), -999), -999)
+    delta_R_leadsubjet_leaduniquejet_boost = ak.where(valid_leading, ak.fill_none((leading_jet.boostCM_of(Higgs_lorentz)).deltaR(leadsubjet_p4), -999), -999)
+    delta_R_subleadsubjet_leaduniquejet_boost = ak.where(valid_leading, ak.fill_none((leading_jet.boostCM_of(Higgs_lorentz)).deltaR(subleadsubjet_p4), -999), -999)
+
     return {
         'Ht': Ht,
         'eta_product': eta_product,
@@ -635,8 +764,39 @@ def compute_vbf_features(t, leadsubjet_p4, subleadsubjet_p4, ditau_p4, met_2d):
         'delta_phi_jj': delta_phi_jj,
         'pt_jj_higgs': pt_jj_higgs,
         'delta_r_leadjet_ditau': delta_r_leadjet_ditau,
-        'leading_jet_pt': leading_jet_pt,
-        'subleading_jet_pt': subleading_jet_pt,
+        'vbf_leading_jet_pt': leading_jet_pt,
+        'vbf_subleading_jet_pt': subleading_jet_pt,
+        'mean_pT_subjets': mean_pT_subjets,
+        'rms_pT_subjets': rms_pT_subjets,
+        'skewness_pT_subjets': skewness_pT_subjets,
+        'kurtosis_pT_subjets': kurtosis_pT_subjets,
+        'mean_dR_subjet_ditau': mean_dR_subjet_ditau,
+        'rms_dR_subjet_ditau': rms_dR_subjet_ditau,
+        'skewness_dR_subjet_ditau': skewness_dR_subjet_ditau,
+        'kurtosis_dR_subjet_ditau': kurtosis_dR_subjet_ditau,
+        'mean_dEta_subjet_ditau': mean_dEta_subjet_ditau,
+        'rms_dEta_subjet_ditau': rms_dEta_subjet_ditau,
+        'skewness_dEta_subjet_ditau': skewness_dEta_subjet_ditau,
+        'kurtosis_dEta_subjet_ditau': kurtosis_dEta_subjet_ditau,
+        'mean_dEta_subjet_MET': mean_dEta_subjet_MET,
+        'rms_dEta_subjet_MET': rms_dEta_subjet_MET,
+        'skewness_dEta_subjet_MET': skewness_dEta_subjet_MET,
+        'kurtosis_dEta_subjet_MET': kurtosis_dEta_subjet_MET,
+        'delta_R_lead_boost': delta_R_lead_boost,
+        'delta_R_sublead_boost': delta_R_sublead_boost,
+        'delta_R_subjets_boost': delta_R_subjets_boost,
+        'delta_R_met_leadsubjet_boost': delta_R_met_leadsubjet_boost,
+        'delta_R_met_subleadsubjet_boost': delta_R_met_subleadsubjet_boost,
+        'leadsubjet_pt_boost': leadsubjet_pt_boost,
+        'subleadsubjet_pt_boost': subleadsubjet_pt_boost,
+        'met_pt_boost': met_pt_boost,
+        'subjet_vismass_boost': subjet_vismass_boost,
+        'delta_R_met_leaduniquejet': delta_R_met_leaduniquejet,
+        'delta_R_leadsubjet_leaduniquejet': delta_R_leadsubjet_leaduniquejet,
+        'delta_R_subleadsubjet_leaduniquejet': delta_R_subleadsubjet_leaduniquejet,
+        'delta_R_met_leaduniquejet_boost': delta_R_met_leaduniquejet_boost,
+        'delta_R_leadsubjet_leaduniquejet_boost': delta_R_leadsubjet_leaduniquejet_boost,
+        'delta_R_subleadsubjet_leaduniquejet_boost': delta_R_subleadsubjet_leaduniquejet_boost,
     }
 
 
@@ -696,7 +856,15 @@ def Var(t, include_vbf=False):
     vbf = compute_vbf_features(t, leadsubjet_p4, subleadsubjet_p4, ditau_p4, met_2d)
     return base_out + [
         vbf['Ht'], vbf['eta_product'], vbf['delta_eta_jj'], vbf['Mjj'], vbf['pt_jj'], vbf['delta_phi_jj'],
-        vbf['pt_jj_higgs'], vbf['delta_r_leadjet_ditau'], vbf['leading_jet_pt'], vbf['subleading_jet_pt']
+        vbf['pt_jj_higgs'], vbf['delta_r_leadjet_ditau'], vbf['vbf_leading_jet_pt'], vbf['vbf_subleading_jet_pt'],
+        vbf['mean_pT_subjets'], vbf['rms_pT_subjets'], vbf['skewness_pT_subjets'], vbf['kurtosis_pT_subjets'],
+        vbf['mean_dR_subjet_ditau'], vbf['rms_dR_subjet_ditau'], vbf['skewness_dR_subjet_ditau'], vbf['kurtosis_dR_subjet_ditau'],
+        vbf['mean_dEta_subjet_ditau'], vbf['rms_dEta_subjet_ditau'], vbf['skewness_dEta_subjet_ditau'], vbf['kurtosis_dEta_subjet_ditau'],
+        vbf['mean_dEta_subjet_MET'], vbf['rms_dEta_subjet_MET'], vbf['skewness_dEta_subjet_MET'], vbf['kurtosis_dEta_subjet_MET'],
+        vbf['delta_R_lead_boost'], vbf['delta_R_sublead_boost'], vbf['delta_R_subjets_boost'],
+        vbf['delta_R_met_leadsubjet_boost'], vbf['delta_R_met_subleadsubjet_boost'], vbf['leadsubjet_pt_boost'], vbf['subleadsubjet_pt_boost'], vbf['met_pt_boost'], vbf['subjet_vismass_boost'],
+        vbf['delta_R_met_leaduniquejet'], vbf['delta_R_leadsubjet_leaduniquejet'], vbf['delta_R_subleadsubjet_leaduniquejet'],
+        vbf['delta_R_met_leaduniquejet_boost'], vbf['delta_R_leadsubjet_leaduniquejet_boost'], vbf['delta_R_subleadsubjet_leaduniquejet_boost']
     ]
 
 
@@ -762,7 +930,15 @@ def Data_Var(t, config=None, include_vbf=False):
     vbf = compute_vbf_features(t, leadsubjet_p4, subleadsubjet_p4, ditau_p4, met_2d)
     return base_out + [
         vbf['Ht'], vbf['eta_product'], vbf['delta_eta_jj'], vbf['Mjj'], vbf['pt_jj'], vbf['delta_phi_jj'],
-        vbf['pt_jj_higgs'], vbf['delta_r_leadjet_ditau'], vbf['leading_jet_pt'], vbf['subleading_jet_pt']
+        vbf['pt_jj_higgs'], vbf['delta_r_leadjet_ditau'], vbf['vbf_leading_jet_pt'], vbf['vbf_subleading_jet_pt'],
+        vbf['mean_pT_subjets'], vbf['rms_pT_subjets'], vbf['skewness_pT_subjets'], vbf['kurtosis_pT_subjets'],
+        vbf['mean_dR_subjet_ditau'], vbf['rms_dR_subjet_ditau'], vbf['skewness_dR_subjet_ditau'], vbf['kurtosis_dR_subjet_ditau'],
+        vbf['mean_dEta_subjet_ditau'], vbf['rms_dEta_subjet_ditau'], vbf['skewness_dEta_subjet_ditau'], vbf['kurtosis_dEta_subjet_ditau'],
+        vbf['mean_dEta_subjet_MET'], vbf['rms_dEta_subjet_MET'], vbf['skewness_dEta_subjet_MET'], vbf['kurtosis_dEta_subjet_MET'],
+        vbf['delta_R_lead_boost'], vbf['delta_R_sublead_boost'], vbf['delta_R_subjets_boost'],
+        vbf['delta_R_met_leadsubjet_boost'], vbf['delta_R_met_subleadsubjet_boost'], vbf['leadsubjet_pt_boost'], vbf['subleadsubjet_pt_boost'], vbf['met_pt_boost'], vbf['subjet_vismass_boost'],
+        vbf['delta_R_met_leaduniquejet'], vbf['delta_R_leadsubjet_leaduniquejet'], vbf['delta_R_subleadsubjet_leaduniquejet'],
+        vbf['delta_R_met_leaduniquejet_boost'], vbf['delta_R_leadsubjet_leaduniquejet_boost'], vbf['delta_R_subleadsubjet_leaduniquejet_boost']
     ]
 
 

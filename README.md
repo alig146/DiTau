@@ -1,6 +1,6 @@
-# B2TF
+# T2T
 
-A Boosted Di-tau Training Framework
+A Di-Tau Training Framework for Di-Tau Analysis Framework
 
 ### Overview
 This repository contains two main ML pipelines for the boosted di-tau analysis:

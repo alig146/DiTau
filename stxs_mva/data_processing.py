@@ -29,7 +29,17 @@ def _arrays_to_df(arr_list, label):
         'delta_R_lead','delta_eta_lead','delta_phi_lead','delta_R_sublead','delta_eta_sublead','delta_phi_sublead',
         'met_centrality','omni_score','leadsubjet_charge','subleadsubjet_charge','leadsubjet_n_core_tracks','subleadsubjet_n_core_tracks',
         'e_ratio_lead','e_ratio_sublead','higgs_pt','leadsubjet_eta','subleadsubjet_eta','ditau_eta','delta_phi_met_ditau',
-        'Ht','eta_product','delta_eta_jj','Mjj','pt_jj','delta_phi_jj','pt_jj_higgs','delta_r_leadjet_ditau','leading_jet_pt','subleading_jet_pt'
+        'Ht','eta_product','delta_eta_jj','Mjj','pt_jj','delta_phi_jj','pt_jj_higgs','delta_r_leadjet_ditau',
+        'vbf_leading_jet_pt','vbf_subleading_jet_pt',
+        'mean_pT_subjets','rms_pT_subjets','skewness_pT_subjets','kurtosis_pT_subjets',
+        'mean_dR_subjet_ditau','rms_dR_subjet_ditau','skewness_dR_subjet_ditau','kurtosis_dR_subjet_ditau',
+        'mean_dEta_subjet_ditau','rms_dEta_subjet_ditau','skewness_dEta_subjet_ditau','kurtosis_dEta_subjet_ditau',
+        'mean_dEta_subjet_MET','rms_dEta_subjet_MET','skewness_dEta_subjet_MET','kurtosis_dEta_subjet_MET',
+        'delta_R_lead_boost','delta_R_sublead_boost','delta_R_subjets_boost',
+        'delta_R_met_leadsubjet_boost','delta_R_met_subleadsubjet_boost',
+        'leadsubjet_pt_boost','subleadsubjet_pt_boost','met_pt_boost','subjet_vismass_boost',
+        'delta_R_met_leaduniquejet','delta_R_leadsubjet_leaduniquejet','delta_R_subleadsubjet_leaduniquejet',
+        'delta_R_met_leaduniquejet_boost','delta_R_leadsubjet_leaduniquejet_boost','delta_R_subleadsubjet_leaduniquejet_boost'
     ]
     data = {name: np.array(arr) for name, arr in zip(var_names, arr_list)}
     df = pd.DataFrame(data)

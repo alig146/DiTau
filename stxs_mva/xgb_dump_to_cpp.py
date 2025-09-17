@@ -2,7 +2,7 @@ import re
 import sys
 
 # ========== CONFIGURATION ==========
-MODEL_DUMP_FILE = "xgboost_k_fold_3class_model_1.txt"
+MODEL_DUMP_FILE = "xgboost_3class_model_fold_0.txt"
 CPP_OUTPUT_FILE = "xgb_model.cpp"
 NUM_CLASSES = 3
 # ===================================
