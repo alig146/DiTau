@@ -34,17 +34,27 @@ class ThreeClassClassifier:
 
         # Class reweighting
         if not df.empty:
-            bg_count = len(df[df['label'] == 0]) * 2
-            vbf_count = max(len(df[df['label'] == 1]), 1)
-            ggf_count = max(len(df[df['label'] == 2]), 1)
-            vbf_weight = bg_count / vbf_count
-            ggf_weight = bg_count / ggf_count
+            sums = df.groupby('label')['combined_weights'].sum()
+            vbf_sum = float(sums.get(1, 0.0))
+            ggf_sum = float(sums.get(2, 0.0))
 
-            #vbf_weight should be sum of weights of all VBF events
-            print(f"Class weights - VBF: {vbf_weight:.2f}, ggF: {ggf_weight:.2f}")
-            df.loc[df['label'] == 1, 'combined_weights'] *= vbf_weight
-            df.loc[df['label'] == 2, 'combined_weights'] *= ggf_weight
+            # Identify background subsets
+            is_bkg = (df['label'] == 0)
+            is_data_bkg = is_bkg & (df['combined_weights'] == 1.0) & (df['fake_factor'] != 1.0)
+            is_mc_bkg = is_bkg & (~is_data_bkg)
+            bkg_mc_sum = float(df.loc[is_mc_bkg, 'combined_weights'].sum())
 
+            vbf_scale = bkg_mc_sum / vbf_sum
+            ggf_scale = bkg_mc_sum / ggf_sum
+            df.loc[df['label'] == 1, 'combined_weights'] *= vbf_scale
+            df.loc[df['label'] == 2, 'combined_weights'] *= ggf_scale
+
+            # Background data: apply fake factors
+            df.loc[is_data_bkg, 'combined_weights'] = (
+                df.loc[is_data_bkg, 'combined_weights'] * df.loc[is_data_bkg, 'fake_factor']
+            )
+
+        
         # Create model feature columns (float32 for GPU efficiency)
         for human_name, feat_name in self.feature_mapping.items():
             if human_name in df.columns:
@@ -71,6 +81,73 @@ class ThreeClassClassifier:
             ggf = len(fold[fold['label'] == 2])
             print(f"  Fold {i}: BG={bg}, VBF={vbf}, ggF={ggf}")
         return splits
+
+    def plot_input_features(self, df, features=None, bins=50):
+        """Plot input feature distributions per class using current event weights.
+
+        Saves one PNG per feature under plots/feature_<name>.png
+        """
+        # Default to mapped human-readable features
+        if features is None:
+            features = list(self.feature_mapping.keys())
+
+        # Ensure weights available
+        if 'combined_weights' not in df.columns:
+            df['combined_weights'] = 1.0
+
+        for feat in features:
+            if feat not in df.columns:
+                continue
+            plt.figure(figsize=(8, 6))
+            # Collect all valid values across classes for range estimation
+            all_vals = []
+            for cls, color in zip([0, 1, 2], ['tab:blue', 'tab:red', 'tab:green']):
+                mask = df['label'] == cls
+                if mask.sum() == 0:
+                    continue
+                values = df.loc[mask, feat].astype(float).to_numpy()
+                weights = df.loc[mask, 'combined_weights'].astype(float).to_numpy()
+                # Drop NaN/inf
+                valid = np.isfinite(values) & np.isfinite(weights) & (values > -100)
+                values = values[valid]
+                weights = weights[valid]
+                if len(values) == 0:
+                    continue
+                all_vals.append(values)
+
+            if len(all_vals) == 0:
+                plt.close()
+                continue
+            concat_vals = np.concatenate(all_vals)
+            mu = float(np.mean(concat_vals))
+            sigma = float(np.std(concat_vals))
+            if not np.isfinite(sigma) or sigma == 0:
+                sigma = 1.0
+            xmin = mu - 3.0 * sigma
+            xmax = mu + 3.0 * sigma
+            # Re-loop to actually plot with common range
+            for cls, color in zip([0, 1, 2], ['tab:blue', 'tab:red', 'tab:green']):
+                mask = df['label'] == cls
+                if mask.sum() == 0:
+                    continue
+                values = df.loc[mask, feat].astype(float).to_numpy()
+                weights = df.loc[mask, 'combined_weights'].astype(float).to_numpy()
+                valid = np.isfinite(values) & np.isfinite(weights) & (values > -100)
+                values = values[valid]
+                weights = weights[valid]
+                if len(values) == 0:
+                    continue
+                hist_bins = np.linspace(xmin, xmax, bins + 1)
+                plt.hist(values, bins=hist_bins, weights=weights, density=True, histtype='step',
+                         linewidth=2, label=self.class_names[cls], color=color, alpha=0.9)
+            plt.xlabel(feat, fontsize=12)
+            plt.ylabel('Density', fontsize=12)
+            plt.title(f'Input Feature: {feat}')
+            plt.grid(True, alpha=0.3)
+            plt.legend()
+            out_path = os.path.join(self.plots_dir, f'feature_{feat}.png')
+            plt.savefig(out_path, dpi=300, bbox_inches='tight')
+            plt.close()
     
     def train_model(self, X_train, y_train, sample_weights):
         """Train XGBoost classifier."""
@@ -229,6 +306,8 @@ def main():
     # Load and prepare data
     print("Loading and preparing data...")
     df = classifier.load_and_prepare_data()
+    # Plot input feature distributions before training
+    classifier.plot_input_features(df)
     
     # Split data
     data_splits = classifier.split_data_k_fold(df, k=3)
@@ -247,7 +326,7 @@ def main():
         # Prepare data
         X_train = train_data[classifier.feature_cols].astype('float32')
         y_train = train_data['label']
-        weights_train = (train_data['combined_weights'] * train_data['fake_factor']).astype(float)
+        weights_train = (train_data['combined_weights']).astype(float)
         
         X_test = test_data[classifier.feature_cols].astype('float32')
         y_test = test_data['label']
