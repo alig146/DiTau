@@ -8,6 +8,7 @@ from xgboost import XGBClassifier
 import shap
 from itertools import combinations
 import time
+import os
 import sys
 sys.path.insert(0, '../')
 from utils import mva_utils
@@ -21,6 +22,9 @@ class ThreeClassClassifier:
         self.feature_mapping = FEATURE_MAPPING
         self.feature_cols = list(self.feature_mapping.values())
         self.class_names = {0: 'Background', 1: 'VBF_H', 2: 'ggF_H'}
+        # Plots directory
+        self.plots_dir = os.path.join(os.path.dirname(__file__), 'plots')
+        os.makedirs(self.plots_dir, exist_ok=True)
         
     def load_and_prepare_data(self):
         """Load DataFrame from pre-built Run 2 pickles (same flow as notebooks)."""
@@ -35,6 +39,8 @@ class ThreeClassClassifier:
             ggf_count = max(len(df[df['label'] == 2]), 1)
             vbf_weight = bg_count / vbf_count
             ggf_weight = bg_count / ggf_count
+
+            #vbf_weight should be sum of weights of all VBF events
             print(f"Class weights - VBF: {vbf_weight:.2f}, ggF: {ggf_weight:.2f}")
             df.loc[df['label'] == 1, 'combined_weights'] *= vbf_weight
             df.loc[df['label'] == 2, 'combined_weights'] *= ggf_weight
@@ -77,7 +83,9 @@ class ThreeClassClassifier:
             'eval_metric': ['merror', 'mlogloss'],
             'random_state': 42,
             'gamma': 0.001,
-            'verbosity': 1
+            'verbosity': 1,
+            'tree_method': 'hist',   
+            'device': 'cuda'         
         }
         
         self.model = XGBClassifier(**params)
@@ -112,7 +120,7 @@ class ThreeClassClassifier:
         plt.title(f'Confusion Matrix {"(Normalized)" if normalize else "(Raw)"}')
         
         suffix = f"_fold{fold_idx}" if fold_idx is not None else ""
-        plt.savefig(f'confusion_matrix{suffix}_{"normalized" if normalize else "raw"}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(self.plots_dir, f'confusion_matrix{suffix}_{"normalized" if normalize else "raw"}.png'), dpi=300, bbox_inches='tight')
         plt.close()
     
     def plot_class_score_distributions(self, y_true, y_pred_proba, class_idx, class_name, fold_idx=None):
@@ -139,7 +147,7 @@ class ThreeClassClassifier:
         plt.title(f'Score Distribution: {class_name} Classifier Output')
         
         suffix = f"_fold{fold_idx}" if fold_idx is not None else ""
-        plt.savefig(f'score_distribution_{class_name.lower()}{suffix}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(self.plots_dir, f'score_distribution_{class_name.lower()}{suffix}.png'), dpi=300, bbox_inches='tight')
         plt.close()
     
     def plot_roc_curves(self, y_true, y_pred_proba, fold_idx=None):
@@ -187,7 +195,7 @@ class ThreeClassClassifier:
         
         plt.tight_layout()
         suffix = f"_fold{fold_idx}" if fold_idx is not None else ""
-        plt.savefig(f'roc_curves{suffix}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(self.plots_dir, f'roc_curves{suffix}.png'), dpi=300, bbox_inches='tight')
         plt.close()
     
     def analyze_feature_importance(self, X_test, fold_idx=None):
@@ -209,7 +217,7 @@ class ThreeClassClassifier:
             )
             plt.title(f"SHAP Feature Importance for {class_name}")
             suffix = f"_fold{fold_idx}" if fold_idx is not None else ""
-            plt.savefig(f'shap_summary_{class_name}{suffix}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(os.path.join(self.plots_dir, f'shap_summary_{class_name}{suffix}.png'), dpi=300, bbox_inches='tight')
             plt.close()
 
 

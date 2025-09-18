@@ -10,4 +10,5 @@ analysis_mva/wandb/
 analysis_mva/*.h
 analysis_mva/*.root
 analysis_mva/*.pkl
+stxs_mva/*png
 *~
