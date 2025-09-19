@@ -1,38 +1,18 @@
 # T2T
 
-A Di-Tau Training Framework for Di-Tau Analysis Framework
+diTau-to-diTau. A DiTau Training Framework for DiTau Analysis Frameworks.
 
 ### Overview
 This repository contains two main ML pipelines for the boosted di-tau analysis:
 - analysis_mva: Main analysis BDTs (Run 2 and Run 3 workflows) for the boosted di-tau selection.
 - stxs_mva: A 3-class BDT classifier (Background, VBF_H, ggF_H) used for the STXS categorization.
-
-### Project Structure
-```
-DiTau/
-├── analysis_mva/                         # Main boosted di-tau MVA workflows
-│   ├── analysis_mva_run2.ipynb          # Run 2 data/MC processing and BDT training
-│   ├── analysis_mva_run3.ipynb          # Run 3 data/MC processing and BDT training
-│   └── ...                              # Supporting notebooks and assets
-├── stxs_mva/                            # STXS 3-class classifier workflow
-│   ├── bdt_training.py                  # Main script to train Background/VBF/ggF classifier
-│   ├── data_processing.py               # Utilities to build training DataFrame from pickles
-│   └── ...
-├── utils/                                # Shared utilities
-│   ├── mva_utils.py                     # Physics variables, I/O, cuts, and helpers
-│   └── ...
-├── data/                                 # Staging area for prebuilt pickles or inputs
-│   └── (generated externally; see note below)
-├── environment.yml                       # Conda environment specification
-├── requirements.txt                      # Python dependencies (pip)
-└── README.md                             # This file
-```
+- ditau_id and ditau_id_data_processor: are for processing data dn making plots dor teh bosoted di-tau tagger (Omni and more)
 
 ### Data inputs (important)
-- The ROOT inputs and derived pickles used by the notebooks and training scripts are produced by the BOOM pipeline. See BOOM here: [BOOM](https://gitlab.cern.ch/ATauLeptonAnalysiS/boom).
+- The ROOT and json inputs used by the notebooks and training scripts are produced by the BOOM pipeline. See BOOM here: [BOOM](https://gitlab.cern.ch/ATauLeptonAnalysiS/boom).
 - The contents of `data/` may change when BOOM is updated. Always verify that your local inputs are consistent with the current BOOM configuration before training.
 - Typical inputs for stxs_mva training:
-  - `data/raw_mc_run2.pkl` and `data/raw_data_run2.pkl` (Run 2)
+  - `raw_mc_run2.pkl`, `raw_data_run2.pkl` and `stxs_training_run2.pkl` (Run 2)
   - These are consumed by `stxs_mva/data_processing.py` and `stxs_mva/bdt_training.py`.
 
 ### analysis_mva (main boosted di-tau BDTs)
@@ -66,7 +46,28 @@ DiTau/
 3) Train STXS 3-class classifier:
    - `python stxs_mva/bdt_training.py`
 
+### Project Structure
+```
+DiTau/
+├── analysis_mva/                         # Main boosted di-tau MVA workflows
+│   ├── analysis_mva_run2.ipynb          # Run 2 data/MC processing and BDT training
+│   ├── analysis_mva_run3.ipynb          # Run 3 data/MC processing and BDT training
+│   └── ...                              # Supporting notebooks and assets
+├── stxs_mva/                            # STXS 3-class classifier workflow
+│   ├── bdt_training.py                  # Main script to train Background/VBF/ggF classifier
+│   ├── data_processing.py               # Utilities to build training DataFrame from pickles
+│   └── ...
+├── utils/                                # Shared utilities
+│   ├── mva_utils.py                     # Physics variables, I/O, cuts, and helpers
+│   └── ...
+├── data/                                 # Staging area for prebuilt pickles or inputs
+│   └── (generated externally; see note below)
+├── environment.yml                       # Conda environment specification
+├── requirements.txt                      # Python dependencies (pip)
+└── README.md                             # This file
+```
+
 ### Notes
 - The utilities in `utils/mva_utils.py` centralize data reading, weighting, trigger masks, selections, and physics variable building for both pipelines.
-- If you change triggers, years, or DSID groups, update `mva_utils.py` and regenerate inputs from BOOM accordingly.
+- If you change triggers, years, or DSID groups, update `mva_utils.py` and regenerate inputs from BOOM and other local inputs accordingly.
 
